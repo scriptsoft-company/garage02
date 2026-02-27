@@ -1,0 +1,2110 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>GarageMaster V002 POS | Pro Management</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        primary: '#f59e0b',
+                        secondary: '#1f2937',
+                        accent: '#3b82f6',
+                        dark: '#0f172a',
+                        surface: '#1e293b',
+                    }
+                }
+            }
+        }
+    </script>
+    <!-- Dexie JS -->
+    <script src="https://unpkg.com/dexie/dist/dexie.js"></script>
+    <!-- Lucide Icons -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <!-- EmailJS SDK -->
+    <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/@emailjs/browser@3/dist/email.min.js"></script>
+    <!-- Chart.js -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <!-- PWA & Mobile Meta Tags -->
+    <meta name="theme-color" content="#f59e0b">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <link rel="manifest" href="manifest.json">
+    <link rel="apple-touch-icon" href="icon-192.png">
+
+    <!-- Custom CSS -->
+    <link rel="stylesheet" href="styles.css">
+
+    <!-- Register Service Worker -->
+    <script>
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', () => {
+                navigator.serviceWorker.register('sw.js')
+                    .then(reg => console.log('Service Worker registered!'))
+                    .catch(err => console.log('Registration failed:', err));
+            });
+        }
+    </script>
+</head>
+
+<body class="bg-dark text-slate-100 flex h-screen overflow-hidden">
+
+    <!-- Sidebar -->
+    <aside class="w-16 lg:w-52 bg-surface border-r border-slate-700 flex flex-col transition-all duration-300">
+        <div class="p-4 flex items-center gap-2">
+            <div class="p-1.5 bg-primary rounded-lg text-dark">
+                <i data-lucide="wrench" class="w-5 h-5"></i>
+            </div>
+            <span class="text-lg font-bold tracking-tight brand-font hidden lg:block">Garage<span
+                    class="text-primary">Master V002</span></span>
+        </div>
+
+        <nav class="flex-1 px-3 py-4 space-y-1">
+            <button onclick="switchView('pos')" id="nav-pos"
+                class="nav-item active w-full flex items-center gap-3 p-2 rounded-lg transition-all hover:bg-slate-700 text-sm">
+                <i data-lucide="layout-grid" class="w-4 h-4"></i>
+                <span class="font-medium hidden lg:block">Point of Sale</span>
+            </button>
+            <button onclick="switchView('analytics')" id="nav-analytics"
+                class="nav-item w-full flex items-center gap-3 p-2 rounded-lg transition-all hover:bg-slate-700 text-slate-400 text-sm">
+                <i data-lucide="pie-chart" class="w-4 h-4"></i>
+                <span class="font-medium hidden lg:block">Analytics Dash</span>
+            </button>
+            <button onclick="switchView('inventory')" id="nav-inventory"
+                class="nav-item w-full flex items-center gap-3 p-2 rounded-lg transition-all hover:bg-slate-700 text-slate-400 text-sm">
+                <i data-lucide="package" class="w-4 h-4"></i>
+                <span class="font-medium hidden lg:block">Inventory</span>
+            </button>
+            <button onclick="switchView('history')" id="nav-history"
+                class="nav-item w-full flex items-center gap-3 p-2 rounded-lg transition-all hover:bg-slate-700 text-slate-400 text-sm">
+                <i data-lucide="history" class="w-4 h-4"></i>
+                <span class="font-medium hidden lg:block">Service History</span>
+            </button>
+            <button onclick="switchView('vehicles')" id="nav-vehicles"
+                class="nav-item w-full flex items-center gap-3 p-2 rounded-lg transition-all hover:bg-slate-700 text-slate-400 text-sm">
+                <i data-lucide="car" class="w-4 h-4"></i>
+                <span class="font-medium hidden lg:block">Vehicles</span>
+            </button>
+            <button onclick="switchView('reports')" id="nav-reports"
+                class="nav-item w-full flex items-center gap-3 p-2 rounded-lg transition-all hover:bg-slate-700 text-slate-400 text-sm">
+                <i data-lucide="bar-chart-3" class="w-4 h-4"></i>
+                <span class="font-medium hidden lg:block">Reports</span>
+            </button>
+            <button onclick="switchView('customers')" id="nav-customers"
+                class="nav-item w-full flex items-center gap-3 p-2 rounded-lg transition-all hover:bg-slate-700 text-slate-400 text-sm">
+                <i data-lucide="users" class="w-4 h-4"></i>
+                <span class="font-medium hidden lg:block">Customers</span>
+            </button>
+            <button onclick="switchView('reminders')" id="nav-reminders"
+                class="nav-item w-full flex items-center gap-3 p-2 rounded-lg transition-all hover:bg-slate-700 text-slate-400 text-sm">
+                <i data-lucide="bell-ring" class="w-4 h-4"></i>
+                <span class="font-medium hidden lg:block">Reminders</span>
+            </button>
+            <button onclick="switchView('expenses')" id="nav-expenses"
+                class="nav-item w-full flex items-center gap-3 p-2 rounded-lg transition-all hover:bg-slate-700 text-slate-400 text-sm">
+                <i data-lucide="receipt" class="w-4 h-4"></i>
+                <span class="font-medium hidden lg:block">Expenses</span>
+            </button>
+            <button onclick="switchView('grn')" id="nav-grn"
+                class="nav-item w-full flex items-center gap-3 p-2 rounded-lg transition-all hover:bg-slate-700 text-slate-400 text-sm">
+                <i data-lucide="file-input" class="w-4 h-4"></i>
+                <span class="font-medium hidden lg:block">GRN (Stock In)</span>
+            </button>
+            <button onclick="switchView('suppliers')" id="nav-suppliers"
+                class="nav-item w-full flex items-center gap-3 p-2 rounded-lg transition-all hover:bg-slate-700 text-slate-400 text-sm">
+                <i data-lucide="truck" class="w-4 h-4"></i>
+                <span class="font-medium hidden lg:block">Suppliers</span>
+            </button>
+            <button onclick="switchView('admin')" id="nav-admin"
+                class="nav-item w-full flex items-center gap-3 p-2 rounded-lg transition-all hover:bg-slate-700 text-slate-400 text-sm">
+                <i data-lucide="shield" class="w-4 h-4"></i>
+                <span class="font-medium hidden lg:block">Admin Panel</span>
+            </button>
+        </nav>
+
+        <div class="p-4 border-t border-slate-700 space-y-3">
+            <button onclick="generateDayEndReport()" id="nav-day-end"
+                class="w-full bg-red-600 hover:bg-red-500 text-white py-2 rounded-lg text-xs font-bold flex items-center justify-center gap-2 transition-all">
+                <i data-lucide="sun" class="w-4 h-4"></i>
+                <span class="hidden lg:block" id="nav-day-end-text">END BUSINESS DAY</span>
+            </button>
+            <div class="flex items-center gap-3 p-2">
+                <div class="w-8 h-8 rounded-full bg-slate-600 flex items-center justify-center text-xs font-bold">AD
+                </div>
+                <div class="hidden lg:block">
+                    <p id="current-username" class="text-sm font-semibold">User</p>
+                    <button onclick="logout()"
+                        class="text-[10px] text-red-500 hover:text-red-400 font-bold uppercase">Logout</button>
+                    <p id="current-user-role" class="text-[10px] text-slate-500 mt-1">Admin</p>
+                </div>
+            </div>
+        </div>
+    </aside>
+
+    <!-- Main Content -->
+    <main class="flex-1 flex flex-col min-w-0 bg-dark overflow-hidden">
+        <!-- Header -->
+        <header
+            class="h-12 border-b border-slate-700 flex items-center justify-between px-4 bg-surface/50 backdrop-blur-md">
+            <div class="flex items-center gap-4 flex-1">
+                <div class="relative w-full max-w-md">
+                    <i data-lucide="search" class="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400"></i>
+                    <input type="text" id="global-search" placeholder="Search (F1)..."
+                        class="w-full bg-slate-800 border border-slate-700 rounded-lg py-2 pl-10 pr-4 text-sm focus:outline-none focus:ring-2 focus:ring-primary/50 transition-all">
+                    <span
+                        class="absolute right-3 top-1/2 -translate-y-1/2 text-[10px] text-slate-500 font-bold bg-slate-900 px-1 rounded border border-slate-700">F1</span>
+                </div>
+            </div>
+            <div class="flex items-center gap-4">
+                <div id="day-status-indicator" class="mr-2"></div>
+                <div id="clock" class="text-sm font-medium text-slate-400 hidden md:block"></div>
+                <button class="p-2 text-slate-400 hover:text-primary transition-colors">
+                    <i data-lucide="bell" class="w-5 h-5"></i>
+                </button>
+            </div>
+        </header>
+
+        <!-- View Containers -->
+        <div id="view-container" class="flex-1 overflow-hidden relative">
+
+            <!-- POS VIEW -->
+            <section id="view-pos" class="absolute inset-0 flex flex-col lg:flex-row animate-fade-in">
+                <!-- Left Panel: Categories -->
+                <div class="w-full lg:w-40 bg-surface/30 border-r border-slate-800 p-3 overflow-y-auto">
+                    <h3 class="text-xs font-bold uppercase tracking-wider text-slate-500 mb-4 px-2">Categories</h3>
+                    <div id="category-list" class="space-y-1">
+                        <!-- Categories dynamically loaded -->
+                    </div>
+                    <div class="mt-8">
+                        <div class="flex items-center justify-between mb-4 px-2">
+                            <h3 class="text-xs font-bold uppercase tracking-wider text-slate-500">Services</h3>
+                            <button onclick="showCustomServiceModal()" class="text-blue-400 hover:text-blue-300">
+                                <i data-lucide="plus-circle" class="w-4 h-4"></i>
+                            </button>
+                        </div>
+
+                        <!-- Custom Service Button -->
+                        <button onclick="showCustomServiceModal()"
+                            class="w-full bg-blue-600/10 hover:bg-blue-600/20 text-blue-400 border border-blue-500/20 p-3 rounded-xl flex items-center gap-3 transition-all mb-4 group relative">
+                            <div
+                                class="p-2 bg-blue-500 rounded-lg text-dark group-hover:scale-110 transition-transform">
+                                <i data-lucide="wrench" class="w-4 h-4"></i>
+                            </div>
+                            <div class="text-left">
+                                <p class="text-[10px] font-black uppercase tracking-widest leading-none">Custom</p>
+                                <p class="text-xs font-bold">SERVICES</p>
+                            </div>
+                            <span
+                                class="absolute right-3 top-1/2 -translate-y-1/2 text-[10px] text-blue-400/50 font-bold border border-blue-400/20 px-1 rounded">F3</span>
+                        </button>
+
+                        <div id="service-list-quick" class="space-y-1">
+                            <!-- Labor services dynamic -->
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Middle Panel: Parts List -->
+                <div class="flex-1 bg-dark/50 p-3 overflow-y-auto">
+                    <div class="flex items-center justify-between mb-6">
+                        <h2 class="text-2xl font-bold" id="current-category-name">All Items</h2>
+                        <div class="flex gap-2">
+                            <button id="view-grid" class="p-2 rounded bg-slate-800 text-primary"><i data-lucide="grid"
+                                    class="w-4 h-4"></i></button>
+                            <button id="view-list" class="p-2 rounded bg-slate-800 text-slate-400"><i data-lucide="list"
+                                    class="w-4 h-4"></i></button>
+                        </div>
+                    </div>
+                    <div id="items-grid" class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-2">
+                        <!-- Items dynamically loaded -->
+                    </div>
+                </div>
+
+                <!-- Right Panel: Cart & Checkout -->
+                <div
+                    class="w-full lg:w-[350px] bg-surface border-l border-slate-700 flex flex-col shadow-2xl relative group">
+                    <!-- Hidden Barcode Scanner Catch -->
+                    <input type="text" id="barcode-catch"
+                        class="absolute -top-10 left-0 w-full opacity-0 pointer-events-none"
+                        placeholder="SCAN BARCODE..." autocomplete="off">
+
+                    <div class="p-2 border-b border-slate-700 shrink-0">
+                        <div class="flex items-center justify-between mb-1.5">
+                            <h3 class="font-bold flex items-center gap-2 italic text-sm">
+                                <i data-lucide="shopping-cart" class="w-3.5 h-3.5 text-primary"></i> Current Bill
+                                <span
+                                    class="bg-slate-700 text-primary text-[9px] px-1.5 py-0.5 rounded ml-2 not-italic font-mono"
+                                    id="next-invoice-id">#000001</span>
+                            </h3>
+                            <div class="flex items-center gap-2">
+                                <button onclick="focusBarcode()" title="Focus Scanner"
+                                    class="text-primary hover:scale-110 transition-transform">
+                                    <i data-lucide="scan-barcode" class="w-3.5 h-3.5"></i>
+                                </button>
+                                <button onclick="clearCart()"
+                                    class="text-[10px] text-red-400 hover:text-red-300">Clear</button>
+                            </div>
+                        </div>
+                        <div class="space-y-1.5">
+                            <div class="relative flex gap-1">
+                                <div class="relative flex-1">
+                                    <i data-lucide="truck"
+                                        class="absolute left-2.5 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-slate-500"></i>
+                                    <input type="text" id="cart-vehicle-no" placeholder="Vehicle No"
+                                        class="w-full bg-slate-800 border border-slate-600 rounded py-1 pl-7 pr-2 text-[11px] focus:ring-1 focus:ring-primary text-primary font-bold uppercase h-8">
+                                </div>
+                                <button onclick="openVehicleProfileFromPos()"
+                                    class="bg-sky-600/20 hover:bg-sky-600 text-sky-400 hover:text-white border border-sky-500/30 px-2 rounded transition-all flex items-center justify-center"
+                                    title="Vehicle Profile & Photos">
+                                    <i data-lucide="info" class="w-4 h-4"></i>
+                                </button>
+                            </div>
+                            <div class="grid grid-cols-2 gap-1.5">
+                                <div class="relative">
+                                    <i data-lucide="user"
+                                        class="absolute left-2.5 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-slate-500"></i>
+                                    <input type="text" id="cart-customer-name" placeholder="Name"
+                                        class="w-full bg-slate-800 border border-slate-600 rounded py-1 pl-7 pr-2 text-[11px] focus:ring-1 focus:ring-primary h-8">
+                                </div>
+                                <div class="relative">
+                                    <i data-lucide="phone"
+                                        class="absolute left-2.5 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-slate-500"></i>
+                                    <input type="text" id="cart-customer-phone" placeholder="Phone"
+                                        oninput="loadCustomerDetails(this.value)"
+                                        class="w-full bg-slate-800 border border-slate-600 rounded py-1 pl-7 pr-2 text-[11px] focus:ring-1 focus:ring-primary h-8">
+                                </div>
+                                <div class="relative">
+                                    <i data-lucide="gauge"
+                                        class="absolute left-2.5 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-slate-500"></i>
+                                    <input type="number" id="cart-mileage" placeholder="Mileage (KM)"
+                                        class="w-full bg-slate-800 border border-slate-600 rounded py-1 pl-7 pr-2 text-[11px] focus:ring-1 focus:ring-primary h-8 font-mono">
+                                </div>
+                            </div>
+                            <!-- Outstanding Credit Alert -->
+                            <div id="pos-credit-alert"
+                                class="hidden mt-1 p-1.5 bg-red-500/10 border border-red-500/20 rounded animate-fade-in flex justify-between items-center">
+                                <div>
+                                    <p class="text-[8px] text-red-400 font-bold uppercase tracking-wider">Credit</p>
+                                    <h4 class="text-xs font-black text-red-500" id="pos-credit-amount">Rs 0.00</h4>
+                                </div>
+                                <button onclick="payOutstandingCredit()"
+                                    class="bg-red-500 hover:bg-red-600 text-dark font-bold px-2 py-0.5 rounded text-[8px] transition-all">PAY</button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div id="cart-items" class="flex-1 overflow-y-auto p-4 space-y-3">
+                        <!-- Cart items dynamic -->
+                        <div class="h-full flex flex-col items-center justify-center text-slate-600">
+                            <i data-lucide="shopping-basket" class="w-12 h-12 mb-2 opacity-20"></i>
+                            <p class="text-sm">Cart is empty</p>
+                        </div>
+                    </div>
+
+                    <div class="p-2 bg-slate-800/80 border-t border-slate-700 shrink-0 space-y-2">
+                        <div class="space-y-1">
+                            <div class="flex justify-between text-[10px]">
+                                <span class="text-slate-400">Subtotal</span>
+                                <span id="cart-subtotal">Rs 0.00</span>
+                            </div>
+                            <div class="flex justify-between text-[10px] items-center group">
+                                <span class="text-slate-400">Discount <span
+                                        class="text-[8px] opacity-0 group-hover:opacity-100 transition-opacity ml-1">[F4]</span></span>
+                                <input type="number" id="cart-discount" value="0" step="0.01"
+                                    class="w-16 bg-transparent text-right border-b border-slate-600 focus:border-primary outline-none text-[10px]">
+                            </div>
+                            <div class="flex justify-between items-center pt-1 border-t border-slate-700">
+                                <span class="text-xs font-bold">Total</span>
+                                <span id="cart-total" class="text-sm font-black text-primary">Rs 0.00</span>
+                            </div>
+                        </div>
+
+                        <div class="flex gap-2">
+                            <div
+                                class="flex-1 bg-slate-900/50 rounded border border-slate-700/50 p-1.5 flex justify-between items-center group relative">
+                                <span class="text-[9px] font-bold text-slate-500 uppercase">Cash</span>
+                                <input type="number" id="cart-cash-received" placeholder="0.00"
+                                    class="w-16 bg-transparent text-right text-[11px] focus:outline-none text-green-400 font-bold"
+                                    oninput="calculateBalance()">
+                                <span
+                                    class="absolute -top-2 left-1 bg-slate-900 text-[8px] px-1 rounded text-primary border border-slate-700 opacity-0 group-hover:opacity-100 transition-opacity">F2</span>
+                            </div>
+                            <div
+                                class="flex-1 bg-slate-900/50 rounded border border-slate-700/50 p-1.5 flex justify-between items-center">
+                                <span class="text-[9px] font-bold text-slate-500 uppercase">Bal</span>
+                                <span id="cart-balance" class="text-[11px] font-black text-white">0.00</span>
+                            </div>
+                        </div>
+
+                        <!-- Loyalty Points Section -->
+                        <div id="loyalty-panel"
+                            class="hidden bg-amber-500/10 border border-amber-500/20 rounded-xl p-2 space-y-1">
+                            <div class="flex justify-between items-center">
+                                <span class="text-[10px] font-bold text-amber-500 uppercase tracking-widest">Loyalty
+                                    Points</span>
+                                <span id="customer-points-display" class="text-sm font-black text-white">0</span>
+                            </div>
+                            <div class="flex gap-2">
+                                <button onclick="redeemPoints()" id="btn-redeem"
+                                    class="flex-1 bg-amber-600 hover:bg-amber-500 text-white text-[10px] font-bold py-1 rounded transition-colors disabled:opacity-50">
+                                    REDEEM POINTS
+                                </button>
+                                <div id="redeem-value" class="text-[9px] text-amber-500/70 italic flex items-center">
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="grid grid-cols-2 gap-1.5 pt-1">
+                            <button onclick="checkout('cash')"
+                                class="bg-primary hover:bg-orange-500 text-dark font-black py-1.5 rounded shadow-lg shadow-primary/20 transition-all flex flex-col items-center justify-center">
+                                <div class="flex items-center gap-1.5">
+                                    <i data-lucide="banknote" class="w-3.5 h-3.5"></i>
+                                    <span class="text-[10px]">CASH</span>
+                                </div>
+                                <span class="text-[8px] opacity-70 mt-0.5">[F8]</span>
+                            </button>
+                            <button onclick="checkout('credit')"
+                                class="bg-indigo-600 hover:bg-indigo-500 text-white font-bold py-1.5 rounded shadow-lg shadow-indigo-500/20 transition-all flex flex-col items-center justify-center">
+                                <div class="flex items-center gap-1.5">
+                                    <i data-lucide="credit-card" class="w-3.5 h-3.5"></i>
+                                    <span class="text-[10px]">CREDIT</span>
+                                </div>
+                                <span class="text-[8px] opacity-70 mt-0.5">[F9]</span>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- INVENTORY VIEW -->
+            <section id="view-inventory" class="absolute inset-0 hidden p-8 overflow-y-auto animate-fade-in">
+                <div class="max-w-6xl mx-auto">
+                    <div class="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-8">
+                        <div>
+                            <h2 class="text-3xl font-bold">Inventory Management</h2>
+                            <p class="text-slate-400">Manage your spare parts and service rates</p>
+                        </div>
+                        <div class="flex gap-3">
+                            <button onclick="showModal('item-modal')"
+                                class="flex items-center gap-2 bg-primary text-dark px-4 py-2 rounded-lg font-bold hover:scale-105 transition-transform">
+                                <i data-lucide="plus-circle" class="w-5 h-5"></i> Add Part
+                            </button>
+                            <button onclick="showModal('service-modal')"
+                                class="flex items-center gap-2 bg-slate-700 text-white px-4 py-2 rounded-lg font-bold hover:bg-slate-600 transition-colors">
+                                <i data-lucide="plus-circle" class="w-5 h-5"></i> Add Service
+                            </button>
+                        </div>
+                    </div>
+
+                    <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+                        <!-- Parts Table -->
+                        <div class="lg:col-span-2 glass rounded-2xl overflow-hidden shadow-xl">
+                            <div
+                                class="p-4 bg-slate-800/50 border-b border-slate-700 flex justify-between items-center">
+                                <h3 class="font-bold flex items-center gap-2"><i data-lucide="box"
+                                        class="w-4 h-4 text-primary"></i> Spare Parts</h3>
+                                <input type="text" id="inventory-search" placeholder="Filter inventory..."
+                                    class="bg-slate-900 border border-slate-700 rounded-md py-1 px-3 text-xs w-48">
+                            </div>
+                            <div class="overflow-x-auto">
+                                <table class="w-full text-left">
+                                    <thead class="bg-slate-800/30 text-slate-400 text-xs uppercase">
+                                        <tr>
+                                            <th class="px-6 py-3">Part Name</th>
+                                            <th class="px-6 py-3">Part #</th>
+                                            <th class="px-6 py-3 text-right">Stock</th>
+                                            <th class="px-6 py-3 text-right">Price (Rs)</th>
+                                            <th class="px-6 py-3 text-center">Actions</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="inventory-table-body" class="divide-y divide-slate-700/50">
+                                        <!-- Dynamic -->
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+
+                        <!-- Services Table -->
+                        <div class="glass rounded-2xl overflow-hidden shadow-xl">
+                            <div class="p-4 bg-slate-800/50 border-b border-slate-700">
+                                <h3 class="font-bold flex items-center gap-2"><i data-lucide="user-cog"
+                                        class="w-4 h-4 text-blue-400"></i> Service Charges</h3>
+                            </div>
+                            <div class="overflow-x-auto">
+                                <table class="w-full text-left">
+                                    <thead class="bg-slate-800/30 text-slate-400 text-xs uppercase">
+                                        <tr>
+                                            <th class="px-6 py-3">Service</th>
+                                            <th class="px-6 py-3 text-right">Cost (Rs)</th>
+                                            <th class="px-6 py-3 text-center">Actions</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="services-table-body" class="divide-y divide-slate-700/50 text-sm">
+                                        <!-- Dynamic -->
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- HISTORY VIEW -->
+            <section id="view-history" class="absolute inset-0 hidden p-8 overflow-y-auto animate-fade-in">
+                <div class="max-w-6xl mx-auto">
+                    <h2 class="text-3xl font-bold mb-8">Vehicle Service History</h2>
+                    <div class="glass rounded-2xl overflow-hidden mb-8 p-6 shadow-xl">
+                        <div class="flex flex-col md:flex-row gap-4 items-end mb-6">
+                            <div class="flex-1 space-y-1">
+                                <label class="text-sm text-slate-400">Vehicle Number</label>
+                                <input type="text" id="history-vehicle-search"
+                                    placeholder="Enter Vehicle No (e.g. WP CP-1234)"
+                                    class="w-full bg-slate-900 border border-slate-700 rounded-lg py-3 px-4 text-primary font-bold uppercase focus:ring-1 focus:ring-primary outline-none">
+                            </div>
+                            <button onclick="searchVehicleHistory()"
+                                class="bg-primary text-dark font-bold px-8 py-3 rounded-lg hover:bg-orange-500 transition-all flex items-center gap-2">
+                                <i data-lucide="search" class="w-5 h-5"></i> Search History
+                            </button>
+                        </div>
+
+                        <div id="history-results" class="space-y-6">
+                            <!-- History Cards dynamic -->
+                            <div class="py-20 text-center text-slate-500">
+                                <i data-lucide="search" class="w-16 h-16 mx-auto mb-4 opacity-10"></i>
+                                <p>Search for a vehicle number to see its complete service record</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- VEHICLES VIEW -->
+            <section id="view-vehicles" class="absolute inset-0 hidden p-8 overflow-y-auto animate-fade-in">
+                <div class="max-w-6xl mx-auto">
+                    <div class="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-8">
+                        <div>
+                            <h2 class="text-3xl font-bold text-sky-400 flex items-center gap-3">
+                                <i data-lucide="car" class="w-8 h-8"></i>
+                                Vehicle Profiles
+                            </h2>
+                            <p class="text-slate-400 mt-1">Manage vehicle models, engine codes, and damage records</p>
+                        </div>
+                        <div class="flex gap-3">
+                            <div class="relative max-w-md">
+                                <i data-lucide="search"
+                                    class="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-500"></i>
+                                <input type="text" id="vehicle-view-search" oninput="renderVehicleList()"
+                                    placeholder="Search vehicle number..."
+                                    class="bg-slate-900 border border-slate-700 rounded-xl py-2.5 pl-10 pr-4 text-sm outline-none focus:border-sky-500">
+                            </div>
+                        </div>
+                    </div>
+
+                    <div id="vehicle-cards-container" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                        <!-- Vehicle cards will be injected here -->
+                    </div>
+                </div>
+            </section>
+
+            <!-- REPORTS VIEW -->
+            <section id="view-reports" class="absolute inset-0 hidden p-8 overflow-y-auto animate-fade-in">
+                <div class="max-w-6xl mx-auto">
+                    <div class="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-8">
+                        <h2 class="text-3xl font-bold">Business Analytics</h2>
+                        <div class="flex flex-wrap gap-2">
+                            <button onclick="generateDailySalesReport()"
+                                class="flex items-center gap-2 bg-slate-700 hover:bg-slate-600 text-white px-3 py-2 rounded-lg text-xs font-bold border border-slate-600 transition-all">
+                                <i data-lucide="calendar" class="w-4 h-4 text-orange-400"></i>
+                                Daily Report
+                            </button>
+                            <button onclick="generateMonthlyReport()"
+                                class="flex items-center gap-2 bg-slate-700 hover:bg-slate-600 text-white px-3 py-2 rounded-lg text-xs font-bold border border-slate-600 transition-all">
+                                <i data-lucide="file-text" class="w-4 h-4 text-blue-400"></i>
+                                Monthly Report
+                            </button>
+                            <button onclick="generateAnnualReport()"
+                                class="flex items-center gap-2 bg-slate-700 hover:bg-slate-600 text-white px-3 py-2 rounded-lg text-xs font-bold border border-slate-600 transition-all">
+                                <i data-lucide="landmark" class="w-4 h-4 text-green-400"></i>
+                                Annual Report
+                            </button>
+                            <button onclick="generateProductPerformanceReport()"
+                                class="flex items-center gap-2 bg-slate-700 hover:bg-slate-600 text-white px-3 py-2 rounded-lg text-xs font-bold border border-slate-600 transition-all">
+                                <i data-lucide="package" class="w-4 h-4 text-primary"></i>
+                                Item Performance
+                            </button>
+                            <button onclick="generateCategoryReport()"
+                                class="flex items-center gap-2 bg-slate-700 hover:bg-slate-600 text-white px-3 py-2 rounded-lg text-xs font-bold border border-slate-600 transition-all">
+                                <i data-lucide="grid" class="w-4 h-4 text-blue-400"></i>
+                                Category Sales
+                            </button>
+                            <button onclick="generateCustomerReport()"
+                                class="flex items-center gap-2 bg-slate-700 hover:bg-slate-600 text-white px-3 py-2 rounded-lg text-xs font-bold border border-slate-600 transition-all">
+                                <i data-lucide="users" class="w-4 h-4 text-indigo-400"></i>
+                                Customer List
+                            </button>
+                            <button onclick="generateStockMovementReport()"
+                                class="flex items-center gap-2 bg-slate-700 hover:bg-slate-600 text-white px-3 py-2 rounded-lg text-xs font-bold border border-slate-600 transition-all">
+                                <i data-lucide="boxes" class="w-4 h-4 text-amber-400"></i>
+                                Stock Report
+                            </button>
+                            <button onclick="generateExpenseReport()"
+                                class="flex items-center gap-2 bg-slate-700 hover:bg-slate-600 text-white px-3 py-2 rounded-lg text-xs font-bold border border-slate-600 transition-all">
+                                <i data-lucide="receipt" class="w-4 h-4 text-red-400"></i>
+                                Expense Report
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Date Range Filter Section -->
+                    <div
+                        class="glass p-4 rounded-2xl border border-slate-700 mb-8 flex flex-col md:flex-row items-end gap-3 animate-fade-in">
+                        <div class="flex-1 grid grid-cols-1 md:grid-cols-2 gap-3 w-full">
+                            <div class="space-y-1">
+                                <label class="text-[10px] font-bold text-slate-500 uppercase">From Date</label>
+                                <input type="date" id="report-date-from"
+                                    class="w-full bg-slate-900 border border-slate-700 rounded-lg p-2 text-sm outline-none focus:border-primary">
+                            </div>
+                            <div class="space-y-1">
+                                <label class="text-[10px] font-bold text-slate-500 uppercase">To Date</label>
+                                <input type="date" id="report-date-to"
+                                    class="w-full bg-slate-900 border border-slate-700 rounded-lg p-2 text-sm outline-none focus:border-primary">
+                            </div>
+                        </div>
+                        <button onclick="generateGrnRangeReport()"
+                            class="w-full md:w-auto bg-green-600 hover:bg-green-500 text-white px-6 py-2.5 rounded-lg text-sm font-bold shadow-lg shadow-green-900/20 transition-all flex items-center justify-center gap-2">
+                            <i data-lucide="file-spreadsheet" class="w-4 h-4"></i>
+                            GRN SUMMARY REPORT
+                        </button>
+                    </div>
+
+                    <!-- Analytic Cards -->
+                    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+                        <div
+                            class="glass p-6 rounded-2xl border-l-4 border-primary shadow-lg hover:translate-y-[-2px] transition-transform">
+                            <div class="flex items-center gap-4">
+                                <div class="p-3 bg-primary/10 rounded-xl text-primary">
+                                    <i data-lucide="trending-up" class="w-8 h-8"></i>
+                                </div>
+                                <div class="min-w-0">
+                                    <p class="text-sm text-slate-400">Today's Sales</p>
+                                    <h3 class="text-2xl font-black truncate" id="report-today-sales">Rs 0.00</h3>
+                                </div>
+                            </div>
+                        </div>
+                        <div
+                            class="glass p-6 rounded-2xl border-l-4 border-green-500 shadow-lg hover:translate-y-[-2px] transition-transform">
+                            <div class="flex items-center gap-4">
+                                <div class="p-3 bg-green-500/10 rounded-xl text-green-500">
+                                    <i data-lucide="dollar-sign" class="w-8 h-8"></i>
+                                </div>
+                                <div class="min-w-0">
+                                    <p class="text-sm text-slate-400">Total Profit</p>
+                                    <h3 class="text-2xl font-black text-green-400 truncate" id="report-today-profit">Rs
+                                        0.00</h3>
+                                </div>
+                            </div>
+                        </div>
+                        <div
+                            class="glass p-6 rounded-2xl border-l-4 border-blue-500 shadow-lg hover:translate-y-[-2px] transition-transform">
+                            <div class="flex items-center gap-4">
+                                <div class="p-3 bg-blue-500/10 rounded-xl text-blue-500">
+                                    <i data-lucide="calendar" class="w-8 h-8"></i>
+                                </div>
+                                <div class="min-w-0">
+                                    <p class="text-sm text-slate-400">Monthly Revenue</p>
+                                    <h3 class="text-2xl font-black text-blue-400 truncate" id="report-month-sales">Rs
+                                        0.00</h3>
+                                </div>
+                            </div>
+                        </div>
+                        <div
+                            class="glass p-6 rounded-2xl border-l-4 border-red-500 shadow-lg hover:translate-y-[-2px] transition-transform">
+                            <div class="flex items-center gap-4">
+                                <div class="p-3 bg-red-500/10 rounded-xl text-red-500">
+                                    <i data-lucide="alert-circle" class="w-8 h-8"></i>
+                                </div>
+                                <div class="min-w-0">
+                                    <p class="text-sm text-slate-400">Total Credit</p>
+                                    <h3 class="text-2xl font-black text-red-400 truncate" id="report-credit">Rs 0.00
+                                    </h3>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Charts Section -->
+                    <div class="grid grid-cols-1 lg:grid-cols-3 gap-8 mb-8">
+                        <div class="lg:col-span-2 glass p-6 rounded-2xl shadow-xl border border-slate-700/50">
+                            <h3 class="font-bold mb-6 flex items-center gap-2">
+                                <i data-lucide="line-chart" class="w-5 h-5 text-primary"></i> 7-Day Performance
+                            </h3>
+                            <canvas id="salesChart" height="120"></canvas>
+                        </div>
+                        <div class="glass p-6 rounded-2xl shadow-xl border border-slate-700/50">
+                            <h3 class="font-bold mb-6 flex items-center gap-2">
+                                <i data-lucide="pie-chart" class="w-5 h-5 text-blue-400"></i> Stock Distribution
+                            </h3>
+                            <canvas id="inventoryChart" height="250"></canvas>
+                        </div>
+                    </div>
+
+                    <!-- Recent Sales Table -->
+                    <div class="glass rounded-2xl overflow-hidden shadow-xl mb-8 border border-slate-700/50">
+                        <div
+                            class="p-4 bg-slate-800/50 border-b border-slate-700 flex justify-between items-center text-primary">
+                            <h3 class="font-bold flex items-center gap-2"><i data-lucide="history" class="w-4 h-4"></i>
+                                Recent Transactions (Last 10)</h3>
+                        </div>
+                        <div class="overflow-x-auto">
+                            <table class="w-full text-left">
+                                <thead class="bg-slate-900/50 text-slate-400 text-xs uppercase tracking-wider">
+                                    <tr>
+                                        <th class="px-6 py-4">Date</th>
+                                        <th class="px-6 py-4">Vehicle / Customer</th>
+                                        <th class="px-6 py-4">Method</th>
+                                        <th class="px-6 py-4 text-right">Amount</th>
+                                        <th class="px-6 py-4 text-center">Action</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="reports-table-body" class="divide-y divide-slate-700/50 text-sm">
+                                    <!-- Injection point for recent sales -->
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+
+                    <!-- Pending Credit Table -->
+                    <div class="glass rounded-2xl overflow-hidden shadow-xl mb-8 border border-red-500/20">
+                        <div
+                            class="p-4 bg-red-500/5 border-b border-red-500/10 flex justify-between items-center text-red-400">
+                            <h3 class="font-bold flex items-center gap-2"><i data-lucide="alert-circle"
+                                    class="w-4 h-4"></i>
+                                Pending Credit (Debtors)</h3>
+                        </div>
+                        <div class="overflow-x-auto">
+                            <table class="w-full text-left">
+                                <thead class="bg-red-500/5 text-slate-400 text-xs uppercase tracking-wider">
+                                    <tr>
+                                        <th class="px-6 py-4">Customer</th>
+                                        <th class="px-6 py-4">Vehicle #</th>
+                                        <th class="px-6 py-4 text-right">Phone</th>
+                                        <th class="px-6 py-4 text-right">Amount (Rs)</th>
+                                        <th class="px-6 py-4 text-center">Action</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="credit-table-body" class="divide-y divide-red-500/5 text-sm">
+                                    <!-- Injection point for debtors -->
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- CUSTOMERS VIEW -->
+            <section id="view-customers" class="absolute inset-0 hidden p-8 overflow-y-auto animate-fade-in">
+                <div class="max-w-6xl mx-auto">
+                    <div class="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-8">
+                        <div>
+                            <h2 class="text-3xl font-bold text-slate-100 flex items-center gap-3">
+                                <i data-lucide="users" class="w-8 h-8 text-indigo-400"></i>
+                                Customer & Loyalty
+                            </h2>
+                            <p class="text-slate-400 mt-1">Manage debtor balances and customer loyalty points</p>
+                        </div>
+                        <div class="flex flex-wrap items-center gap-3">
+                            <button onclick="showModal('customer-modal')"
+                                class="bg-indigo-600 hover:bg-indigo-500 text-white font-bold px-4 py-2 rounded-xl transition-all shadow-lg shadow-indigo-600/20 flex items-center gap-2 text-xs">
+                                <i data-lucide="user-plus" class="w-4 h-4"></i>
+                                ADD CUSTOMER
+                            </button>
+                            <div class="flex bg-slate-800 p-1 rounded-xl border border-slate-700">
+                                <button onclick="tabCustomer('credit')" id="tab-cust-credit"
+                                    class="px-4 py-2 rounded-lg text-xs font-bold transition-all bg-red-600 text-white shadow-lg">PENDING
+                                    CREDIT</button>
+                                <button onclick="tabCustomer('loyalty')" id="tab-cust-loyalty"
+                                    class="px-4 py-2 rounded-lg text-xs font-bold transition-all text-slate-400">LOYALTY
+                                    REGISTRY</button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Stats Row -->
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+                        <div class="glass p-6 rounded-2xl border-l-4 border-red-500 shadow-lg">
+                            <p class="text-[10px] text-slate-500 uppercase font-bold tracking-widest">Total Outstanding
+                            </p>
+                            <h3 class="text-2xl font-black text-red-500" id="customer-total-credit">Rs 0.00</h3>
+                        </div>
+                        <div class="glass p-6 rounded-2xl border-l-4 border-amber-500 shadow-lg">
+                            <p class="text-[10px] text-slate-500 uppercase font-bold tracking-widest">Total Loyalty
+                                Points</p>
+                            <h3 class="text-2xl font-black text-amber-500" id="stat-total-loyalty-pts">0</h3>
+                        </div>
+                        <div class="glass p-6 rounded-2xl border-l-4 border-indigo-500 shadow-lg">
+                            <p class="text-[10px] text-slate-500 uppercase font-bold tracking-widest">Safe Customers</p>
+                            <h3 class="text-2xl font-black text-indigo-400" id="customer-count">0</h3>
+                        </div>
+                    </div>
+
+                    <div class="glass rounded-3xl overflow-hidden shadow-2xl border border-slate-700/50">
+                        <div
+                            class="p-6 bg-slate-800/50 border-b border-slate-700 flex flex-col md:flex-row justify-between items-center gap-4">
+                            <div class="relative flex-1 max-w-md">
+                                <i data-lucide="search"
+                                    class="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-500"></i>
+                                <input type="text" id="customer-search" oninput="renderCustomerView()"
+                                    placeholder="Search by name, phone or vehicle..."
+                                    class="w-full bg-slate-900 border border-slate-700 rounded-xl py-2.5 pl-10 pr-4 text-sm outline-none focus:border-indigo-500">
+                            </div>
+                        </div>
+                        <div class="overflow-x-auto">
+                            <table class="w-full text-left">
+                                <thead
+                                    class="bg-slate-900/50 text-slate-400 text-[10px] uppercase font-bold tracking-widest">
+                                    <tr id="customer-table-header">
+                                        <!-- Header injected via script -->
+                                    </tr>
+                                </thead>
+                                <tbody id="customer-list-body" class="divide-y divide-slate-700/50 text-sm">
+                                    <!-- Content injected via script -->
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- SERVICE REMINDERS VIEW -->
+            <section id="view-reminders" class="absolute inset-0 hidden p-8 overflow-y-auto animate-fade-in">
+                <div class="max-w-6xl mx-auto">
+                    <div class="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-8">
+                        <div>
+                            <h2 class="text-3xl font-bold text-amber-400 flex items-center gap-3">
+                                <i data-lucide="bell-ring" class="w-8 h-8"></i>
+                                Service Reminders
+                            </h2>
+                            <p class="text-slate-400 mt-1">Customers due for oil change or regular service (90 days /
+                                5000km rule)</p>
+                        </div>
+                        <div class="flex gap-3">
+                            <div class="bg-amber-500/10 border border-amber-500/20 px-4 py-2 rounded-xl text-center">
+                                <p class="text-[10px] text-amber-500 font-bold uppercase tracking-widest">Due Today</p>
+                                <p class="text-xl font-black" id="reminder-count-today">0</p>
+                            </div>
+                            <div class="bg-slate-800 border border-slate-700 px-4 py-2 rounded-xl text-center">
+                                <p class="text-[10px] text-slate-500 font-bold uppercase tracking-widest">Total Pending
+                                </p>
+                                <p class="text-xl font-black" id="reminder-count-total">0</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="glass rounded-3xl overflow-hidden shadow-2xl border border-slate-700/50">
+                        <div
+                            class="p-6 bg-slate-800/50 border-b border-slate-700 flex flex-col md:flex-row md:items-center justify-between gap-4">
+                            <div class="flex items-center gap-4 flex-1">
+                                <div class="relative flex-1 max-w-md">
+                                    <i data-lucide="search"
+                                        class="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-500"></i>
+                                    <input type="text" id="reminder-search" oninput="renderReminders()"
+                                        placeholder="Search vehicle or customer..."
+                                        class="w-full bg-slate-900 border border-slate-700 rounded-xl py-2.5 pl-10 pr-4 text-sm outline-none focus:border-amber-500">
+                                </div>
+                                <select id="reminder-filter" onchange="renderReminders()"
+                                    class="bg-slate-900 border border-slate-700 rounded-xl py-2.5 px-4 text-sm outline-none focus:border-amber-500">
+                                    <option value="all">All Reminders</option>
+                                    <option value="overdue">Overdue Only</option>
+                                    <option value="upcoming">Upcoming (Next 7 Days)</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="overflow-x-auto">
+                            <table class="w-full text-left">
+                                <thead
+                                    class="bg-slate-900/50 text-slate-400 text-[10px] uppercase font-bold tracking-widest">
+                                    <tr>
+                                        <th class="px-6 py-4">Vehicle Info</th>
+                                        <th class="px-6 py-4">Last Service</th>
+                                        <th class="px-6 py-4">Mileage</th>
+                                        <th class="px-6 py-4">Due Date</th>
+                                        <th class="px-6 py-4 text-center">Action</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="reminder-list-body" class="divide-y divide-slate-700/50 text-sm">
+                                    <!-- Dynamic Reminders -->
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- EXPENSES VIEW -->
+            <section id="view-expenses" class="absolute inset-0 hidden p-8 overflow-y-auto animate-fade-in">
+                <div class="max-w-6xl mx-auto">
+                    <div class="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-8">
+                        <div>
+                            <h2 class="text-3xl font-bold text-amber-500 flex items-center gap-3">
+                                <i data-lucide="receipt" class="w-8 h-8"></i>
+                                Expense Tracking
+                            </h2>
+                            <p class="text-slate-400">Manage your garage utility and operational costs</p>
+                        </div>
+                        <button onclick="showModal('expense-modal')"
+                            class="flex items-center gap-2 bg-amber-600 text-white px-6 py-3 rounded-xl font-bold hover:scale-105 transition-transform shadow-lg shadow-amber-900/20">
+                            <i data-lucide="plus-circle" class="w-5 h-5"></i> Add Daily Expense
+                        </button>
+                    </div>
+
+                    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
+                        <div class="glass p-6 rounded-2xl border-l-4 border-amber-500 shadow-lg">
+                            <div class="flex items-center gap-4">
+                                <div class="p-3 bg-amber-500/10 rounded-xl text-amber-500">
+                                    <i data-lucide="calendar" class="w-8 h-8"></i>
+                                </div>
+                                <div>
+                                    <p class="text-sm text-slate-400">Today's Expenses</p>
+                                    <h3 class="text-3xl font-black text-amber-500" id="expense-total-today">Rs 0.00</h3>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="glass p-6 rounded-2xl border-l-4 border-blue-500 shadow-lg">
+                            <div class="flex items-center gap-4">
+                                <div class="p-3 bg-blue-500/10 rounded-xl text-blue-500">
+                                    <i data-lucide="calendar-days" class="w-8 h-8"></i>
+                                </div>
+                                <div>
+                                    <p class="text-sm text-slate-400">This Month</p>
+                                    <h3 class="text-3xl font-black text-blue-500" id="expense-total-month">Rs 0.00</h3>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="glass rounded-2xl overflow-hidden shadow-xl border border-slate-700/50">
+                        <div
+                            class="p-6 bg-slate-800/50 border-b border-slate-700 flex flex-col md:flex-row justify-between items-center gap-4">
+                            <div>
+                                <h3 class="text-lg font-bold">Expense Journal</h3>
+                                <p class="text-xs text-slate-400">Recent operational expenditures</p>
+                            </div>
+                            <div class="relative w-full md:w-80">
+                                <i data-lucide="search"
+                                    class="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-500"></i>
+                                <input type="text" id="expense-search" oninput="renderExpenses()"
+                                    placeholder="Search expenses..."
+                                    class="w-full bg-slate-900 border border-slate-700 rounded-lg py-2 pl-10 pr-4 text-sm focus:border-amber-500 outline-none">
+                            </div>
+                        </div>
+                        <div class="overflow-x-auto">
+                            <table class="w-full text-left">
+                                <thead class="bg-slate-900 text-slate-400 text-xs uppercase tracking-wider">
+                                    <tr>
+                                        <th class="px-6 py-4">Date</th>
+                                        <th class="px-6 py-4">Category</th>
+                                        <th class="px-6 py-4">Description</th>
+                                        <th class="px-6 py-4 text-right">Amount (Rs)</th>
+                                        <th class="px-6 py-4 text-center">Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="expense-list-body" class="divide-y divide-slate-700/50 text-sm">
+                                    <!-- Dynamic -->
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- GRN VIEW -->
+            <section id="view-grn" class="absolute inset-0 hidden p-8 overflow-y-auto animate-fade-in">
+                <div class="max-w-6xl mx-auto">
+                    <div class="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-8">
+                        <div>
+                            <h2 class="text-3xl font-bold text-green-400 flex items-center gap-3">
+                                <i data-lucide="file-input" class="w-8 h-8"></i>
+                                Good Received Note (GRN)
+                            </h2>
+                            <p class="text-slate-400">Manage incoming stock and supplier invoices</p>
+                        </div>
+                        <button onclick="showModal('grn-modal')"
+                            class="flex items-center gap-2 bg-green-600 text-white px-6 py-3 rounded-xl font-bold hover:scale-105 transition-transform shadow-lg shadow-green-900/20">
+                            <i data-lucide="plus-circle" class="w-5 h-5"></i> Create New GRN
+                        </button>
+                    </div>
+
+                    <div class="glass rounded-2xl overflow-hidden shadow-xl border border-slate-700/50">
+                        <div class="p-6 bg-slate-800/50 border-b border-slate-700 flex justify-between items-center">
+                            <h3 class="font-bold">Recent GRN Records</h3>
+                            <div class="relative w-64">
+                                <i data-lucide="search"
+                                    class="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-500"></i>
+                                <input type="text" id="grn-search" placeholder="Search by Supplier/Date..."
+                                    class="w-full bg-slate-900 border border-slate-700 rounded-lg py-2 pl-10 pr-4 text-xs focus:border-green-500 outline-none">
+                            </div>
+                        </div>
+                        <div class="overflow-x-auto">
+                            <table class="w-full text-left">
+                                <thead class="bg-slate-900/50 text-slate-400 text-xs uppercase tracking-wider">
+                                    <tr>
+                                        <th class="px-6 py-4">Date</th>
+                                        <th class="px-6 py-4">GRN #</th>
+                                        <th class="px-6 py-4">Supplier / Reference</th>
+                                        <th class="px-6 py-4 text-right">Total Amount</th>
+                                        <th class="px-6 py-4 text-center">Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="grn-table-body" class="divide-y divide-slate-700/50 text-sm">
+                                    <!-- Dynamic -->
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- SUPPLIERS VIEW -->
+            <section id="view-suppliers" class="absolute inset-0 hidden p-8 overflow-y-auto animate-fade-in">
+                <div class="max-w-6xl mx-auto">
+                    <div class="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-8">
+                        <div>
+                            <h2 class="text-3xl font-bold text-emerald-400 flex items-center gap-3">
+                                <i data-lucide="truck" class="w-8 h-8"></i>
+                                Supplier Management
+                            </h2>
+                            <p class="text-slate-400 mt-1">Manage spare part suppliers and outstanding balances</p>
+                        </div>
+                        <button onclick="showModal('supplier-modal')"
+                            class="bg-emerald-600 hover:bg-emerald-500 text-white font-black px-6 py-3 rounded-xl transition-all shadow-lg shadow-emerald-600/20 flex items-center gap-2">
+                            <i data-lucide="plus" class="w-5 h-5"></i>
+                            ADD NEW SUPPLIER
+                        </button>
+                    </div>
+
+                    <div class="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
+                        <div class="glass p-6 rounded-2xl border-l-4 border-emerald-500 shadow-lg">
+                            <p class="text-[10px] text-slate-400 uppercase font-bold tracking-widest">Total Suppliers
+                            </p>
+                            <h3 class="text-2xl font-black mt-2" id="supplier-count">0</h3>
+                        </div>
+                        <div class="glass p-6 rounded-2xl border-l-4 border-red-500 shadow-lg">
+                            <p class="text-[10px] text-slate-400 uppercase font-bold tracking-widest">Total Payable</p>
+                            <h3 class="text-2xl font-black mt-2 text-red-500" id="supplier-total-payable">Rs 0.00</h3>
+                        </div>
+                    </div>
+
+                    <div class="glass rounded-3xl overflow-hidden shadow-2xl border border-slate-700/50">
+                        <div class="p-6 bg-slate-800/50 border-b border-slate-700">
+                            <h3
+                                class="font-bold flex items-center gap-2 uppercase tracking-widest text-xs text-slate-300">
+                                <i data-lucide="list" class="w-4 h-4"></i>
+                                Supplier Registry
+                            </h3>
+                        </div>
+                        <div class="overflow-x-auto">
+                            <table class="w-full text-left font-sans">
+                                <thead
+                                    class="bg-slate-900/50 text-slate-400 text-[10px] uppercase font-bold tracking-widest">
+                                    <tr>
+                                        <th class="px-6 py-4 text-center">#</th>
+                                        <th class="px-6 py-4">Supplier Name</th>
+                                        <th class="px-6 py-4">Contact Info</th>
+                                        <th class="px-6 py-4 text-right">Outstanding (Payable)</th>
+                                        <th class="px-6 py-4 text-center">Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="supplier-list-body" class="divide-y divide-slate-700/50 text-sm">
+                                    <!-- Suppliers dynamically loaded -->
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- ANALYTICS VIEW -->
+            <section id="view-analytics" class="absolute inset-0 hidden p-8 overflow-y-auto animate-fade-in bg-dark/95">
+                <div class="max-w-6xl mx-auto">
+                    <div class="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-8">
+                        <div>
+                            <h2 class="text-3xl font-bold text-amber-500 flex items-center gap-3">
+                                <i data-lucide="pie-chart" class="w-8 h-8"></i>
+                                Business Analytics
+                            </h2>
+                            <p class="text-slate-400 mt-1">Deep insights into sales, profits, and inventory performance
+                            </p>
+                        </div>
+                        <div class="flex gap-2">
+                            <select id="analytics-period" onchange="renderAnalytics()"
+                                class="bg-slate-800 border border-slate-700 rounded-xl px-4 py-2 text-sm text-white outline-none focus:border-amber-500">
+                                <option value="7">Last 7 Days</option>
+                                <option value="30" selected>Last 30 Days</option>
+                                <option value="90">Last 3 months</option>
+                                <option value="365">This Year</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
+                        <div class="glass p-6 rounded-2xl border-l-4 border-amber-500 shadow-lg">
+                            <p class="text-[10px] text-slate-400 uppercase font-bold tracking-widest">Total Revenue</p>
+                            <h3 class="text-2xl font-black mt-2 text-white" id="stat-total-revenue">Rs 0.00</h3>
+                        </div>
+                        <div class="glass p-6 rounded-2xl border-l-4 border-emerald-500 shadow-lg">
+                            <p class="text-[10px] text-slate-400 uppercase font-bold tracking-widest">Estimated Profit
+                            </p>
+                            <h3 class="text-2xl font-black mt-2 text-emerald-400" id="stat-total-profit">Rs 0.00</h3>
+                        </div>
+                        <div class="glass p-6 rounded-2xl border-l-4 border-blue-500 shadow-lg">
+                            <p class="text-[10px] text-slate-400 uppercase font-bold tracking-widest">Invoices</p>
+                            <h3 class="text-2xl font-black mt-2 text-white" id="stat-total-invoices">0</h3>
+                        </div>
+                        <div class="glass p-6 rounded-2xl border-l-4 border-purple-500 shadow-lg"
+                            title="Parts with 0 stock">
+                            <p class="text-[10px] text-slate-400 uppercase font-bold tracking-widest">Out of Stock</p>
+                            <h3 class="text-2xl font-black mt-2 text-white" id="stat-out-of-stock">0</h3>
+                        </div>
+                    </div>
+
+                    <div class="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-8">
+                        <!-- Revenue & Profit Chart -->
+                        <div class="glass p-6 rounded-3xl border border-slate-700/50 shadow-2xl">
+                            <h4
+                                class="text-sm font-bold text-slate-300 uppercase tracking-widest mb-6 flex items-center gap-2">
+                                <i data-lucide="line-chart" class="w-4 h-4 text-amber-500"></i> Revenue vs Profit Trend
+                            </h4>
+                            <div class="h-80 w-full">
+                                <canvas id="chart-sales-trend"></canvas>
+                            </div>
+                        </div>
+
+                        <!-- Top Selling Parts -->
+                        <div class="glass p-6 rounded-3xl border border-slate-700/50 shadow-2xl">
+                            <h4
+                                class="text-sm font-bold text-slate-300 uppercase tracking-widest mb-6 flex items-center gap-2">
+                                <i data-lucide="award" class="w-4 h-4 text-amber-500"></i> Top Selling Parts (Qty)
+                            </h4>
+                            <div class="h-80 w-full">
+                                <canvas id="chart-top-parts"></canvas>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+                        <!-- Category Distribution -->
+                        <div class="glass p-6 rounded-3xl border border-slate-700/50 shadow-2xl">
+                            <h4
+                                class="text-sm font-bold text-slate-300 uppercase tracking-widest mb-6 flex items-center gap-2">
+                                <i data-lucide="donut" class="w-4 h-4 text-emerald-500"></i> Revenue by Category
+                            </h4>
+                            <div class="h-80 w-full flex justify-center">
+                                <canvas id="chart-category-dist"></canvas>
+                            </div>
+                        </div>
+
+                        <!-- Weekly Busy Hours (Peak Days) -->
+                        <div class="glass p-6 rounded-3xl border border-slate-700/50 shadow-2xl">
+                            <h4
+                                class="text-sm font-bold text-slate-300 uppercase tracking-widest mb-6 flex items-center gap-2">
+                                <i data-lucide="calendar-check" class="w-4 h-4 text-blue-500"></i> Sales by Day of Week
+                            </h4>
+                            <div class="h-80 w-full">
+                                <canvas id="chart-weekly-activity"></canvas>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- ADMIN VIEW -->
+            <section id="view-admin" class="absolute inset-0 hidden p-8 overflow-y-auto animate-fade-in bg-dark/95">
+                <div class="max-w-4xl mx-auto">
+                    <h2 class="text-3xl font-bold mb-8 flex items-center gap-3">
+                        <i data-lucide="shield-check" class="w-8 h-8 text-red-500"></i>
+                        Admin Dashboard
+                    </h2>
+
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+                        <!-- Database Management -->
+                        <div class="glass p-8 rounded-2xl border border-slate-700">
+                            <h3 class="text-xl font-bold mb-4 text-slate-300">System Management</h3>
+                            <div class="space-y-4">
+                                <button onclick="document.getElementById('import-db-input').click()"
+                                    class="w-full bg-slate-700 hover:bg-slate-600 text-white p-4 rounded-xl flex items-center gap-4 transition-all group">
+                                    <div
+                                        class="w-10 h-10 rounded-full bg-blue-500/20 text-blue-400 flex items-center justify-center group-hover:scale-110 transition-transform">
+                                        <i data-lucide="upload" class="w-5 h-5"></i>
+                                    </div>
+                                    <div class="text-left">
+                                        <div class="font-bold">Restore Backup</div>
+                                        <div class="text-xs text-slate-400">Import database from file</div>
+                                    </div>
+                                </button>
+                                <input type="file" id="import-db-input" class="hidden" accept=".json"
+                                    onchange="importDatabase(event)">
+
+                                <button onclick="exportDatabase()"
+                                    class="w-full bg-slate-700 hover:bg-slate-600 text-white p-4 rounded-xl flex items-center gap-4 transition-all group">
+                                    <div
+                                        class="w-10 h-10 rounded-full bg-green-500/20 text-green-400 flex items-center justify-center group-hover:scale-110 transition-transform">
+                                        <i data-lucide="download" class="w-5 h-5"></i>
+                                    </div>
+                                    <div class="text-left">
+                                        <div class="font-bold">Backup Database</div>
+                                        <div class="text-xs text-slate-400">Save data to local file</div>
+                                    </div>
+                                </button>
+
+                                <button onclick="factoryReset()"
+                                    class="w-full bg-red-900/20 hover:bg-red-900/40 text-red-400 border border-red-900/50 p-4 rounded-xl flex items-center gap-4 transition-all group mt-8">
+                                    <div
+                                        class="w-10 h-10 rounded-full bg-red-500/10 flex items-center justify-center group-hover:animate-pulse">
+                                        <i data-lucide="trash-2" class="w-5 h-5"></i>
+                                    </div>
+                                    <div class="text-left">
+                                        <div class="font-bold">Factory Reset</div>
+                                        <div class="text-xs text-red-400/70">Wipe all data & reset system</div>
+                                    </div>
+                                </button>
+                            </div>
+                        </div>
+
+                        <!-- User Settings -->
+                        <div class="glass p-8 rounded-2xl border border-slate-700">
+                            <h3 class="text-xl font-bold mb-4 text-slate-300">Credentials</h3>
+                            <div class="space-y-4">
+                                <div>
+                                    <label class="block text-xs font-bold text-slate-500 uppercase mb-2">Change Current
+                                        Password</label>
+                                    <input type="password" id="new-admin-pass" placeholder="New Password"
+                                        class="w-full bg-slate-900 border border-slate-700 rounded-lg p-3 outline-none focus:border-primary">
+                                </div>
+                                <button onclick="updatePassword()"
+                                    class="w-full bg-primary text-dark font-bold py-3 rounded-lg hover:brightness-110">Update
+                                    Password</button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Journal Section -->
+                    <div class="glass p-8 rounded-2xl border border-slate-700 mb-8">
+                        <div class="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-6">
+                            <div>
+                                <h3 class="text-xl font-bold text-slate-300">System Journal</h3>
+                                <p class="text-xs text-slate-500">Silent transaction logging to your local folder.</p>
+                            </div>
+                            <button onclick="connectJournalFolder()" id="journal-folder-btn"
+                                class="bg-primary/10 text-primary border border-primary/20 hover:bg-primary hover:text-dark px-6 py-3 rounded-xl text-sm font-bold transition-all flex items-center gap-2">
+                                <i data-lucide="folder-key" class="w-5 h-5"></i> CONNECT JOURNAL FOLDER
+                            </button>
+                        </div>
+                        <div class="bg-dark/50 p-4 rounded-xl font-mono text-xs text-slate-400 max-h-40 overflow-y-auto border border-slate-700/50"
+                            id="journal-live-log">
+                            <p class="opacity-30 italic">System ready. Waiting for transactions...</p>
+                        </div>
+                    </div>
+
+                    <!-- Email Notifications Section -->
+                    <div class="glass p-8 rounded-2xl border border-slate-700 mb-8">
+                        <div class="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-6">
+                            <div>
+                                <h3 class="text-xl font-bold text-slate-300">Email Notifications</h3>
+                                <p class="text-xs text-slate-500">Automatically send Day End summaries to your email.
+                                </p>
+                            </div>
+                            <div class="flex items-center gap-2">
+                                <span class="text-xs font-bold text-slate-500 uppercase">Status:</span>
+                                <span id="email-status-badge"
+                                    class="px-2 py-0.5 rounded text-[10px] bg-red-500/10 text-red-500 font-bold">DISABLED</span>
+                            </div>
+                        </div>
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <div class="space-y-4">
+                                <div>
+                                    <label class="block text-xs font-bold text-slate-500 uppercase mb-2">Recipient Email
+                                        Address</label>
+                                    <input type="email" id="settings-email-recipient" placeholder="owner@example.com"
+                                        class="w-full bg-slate-900 border border-slate-700 rounded-lg p-3 outline-none focus:border-primary text-sm">
+                                </div>
+                                <div class="flex items-center gap-2">
+                                    <input type="checkbox" id="settings-email-auto"
+                                        class="w-4 h-4 rounded border-slate-700 bg-slate-900 text-primary">
+                                    <label for="settings-email-auto"
+                                        class="text-sm text-slate-300 cursor-pointer">Enable Auto-Email on Day
+                                        End</label>
+                                </div>
+                                <div class="flex gap-2">
+                                    <button onclick="saveEmailSettings()"
+                                        class="flex-1 bg-primary text-dark font-bold py-3 rounded-lg hover:brightness-110 transition-all">
+                                        Save Settings
+                                    </button>
+                                    <button onclick="testEmailConnection()"
+                                        class="flex-1 bg-slate-700 hover:bg-slate-600 text-white font-bold py-3 rounded-lg transition-all flex items-center justify-center gap-2">
+                                        <i data-lucide="mail" class="w-4 h-4"></i> Test Email
+                                    </button>
+                                </div>
+                            </div>
+                            <div class="bg-dark/30 p-4 rounded-xl border border-slate-700/50">
+                                <h4 class="text-xs font-bold text-slate-400 uppercase mb-3">Setup Instructions</h4>
+                                <ol class="text-[10px] text-slate-500 space-y-2 list-decimal ml-4">
+                                    <li>Create a free account at <a href="https://www.emailjs.com/" target="_blank"
+                                            class="text-primary underline">EmailJS.com</a></li>
+                                    <li>Add an Email Service (e.g., Gmail) and get the <span
+                                            class="text-slate-300">Service ID</span>.</li>
+                                    <li>Create an Email Template and get the <span class="text-slate-300">Template
+                                            ID</span>.</li>
+                                    <li>Click 'Public Key' in your account to get your <span
+                                            class="text-slate-300">Public Key</span>.</li>
+                                </ol>
+                                <div class="mt-4 grid grid-cols-1 gap-2">
+                                    <input type="text" id="settings-email-service-id"
+                                        placeholder="Service ID (e.g. service_xxxx)"
+                                        class="bg-slate-900 border border-slate-700 rounded p-2 text-[10px] outline-none">
+                                    <input type="text" id="settings-email-template-id"
+                                        placeholder="Template ID (e.g. template_xxxx)"
+                                        class="bg-slate-900 border border-slate-700 rounded p-2 text-[10px] outline-none">
+                                    <input type="text" id="settings-email-public-key" placeholder="Public Key"
+                                        class="bg-slate-900 border border-slate-700 rounded p-2 text-[10px] outline-none">
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- User Management Section -->
+                    <div class="glass p-8 rounded-2xl border border-slate-700">
+                        <div class="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-6">
+                            <h3 class="text-xl font-bold text-slate-300">User Management</h3>
+                            <form onsubmit="handleAddUser(event)" class="flex flex-wrap gap-2">
+                                <input type="text" id="new-username" placeholder="Username" required
+                                    class="bg-slate-900 border border-slate-700 rounded-lg px-3 py-2 text-sm outline-none focus:border-primary">
+                                <input type="password" id="new-password" placeholder="Password" required
+                                    class="bg-slate-900 border border-slate-700 rounded-lg px-3 py-2 text-sm outline-none focus:border-primary">
+                                <select id="new-role" required
+                                    class="bg-slate-900 border border-slate-700 rounded-lg px-3 py-2 text-sm outline-none focus:border-primary">
+                                    <option value="staff">Staff</option>
+                                    <option value="admin">Admin</option>
+                                </select>
+                                <button type="submit"
+                                    class="bg-blue-600 hover:bg-blue-500 text-white font-bold px-4 py-2 rounded-lg text-sm transition-colors">
+                                    Add User
+                                </button>
+                            </form>
+                        </div>
+                        <div class="overflow-x-auto">
+                            <table class="w-full text-left">
+                                <thead class="border-b border-slate-700 text-slate-500 text-xs uppercase">
+                                    <tr>
+                                        <th class="px-6 py-4">Username</th>
+                                        <th class="px-6 py-4">Role</th>
+                                        <th class="px-6 py-4">Password</th>
+                                        <th class="px-6 py-4 text-right">Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="user-management-list" class="divide-y divide-slate-700/50">
+                                    <!-- Users populated here -->
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </section>
+        </div>
+        </div>
+    </main>
+
+    <!-- MODALS -->
+
+    <!-- Item Modal -->
+    <div id="item-modal"
+        class="hidden fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-sm p-4">
+        <div class="bg-surface w-full max-w-md rounded-2xl shadow-2xl border border-slate-700 animate-fade-in">
+            <div class="p-6 border-b border-slate-700 flex justify-between items-center">
+                <h3 class="text-xl font-bold">Add New Spare Part</h3>
+                <button onclick="hideModal('item-modal')" class="text-slate-400 hover:text-white"><i data-lucide="x"
+                        class="w-6 h-6"></i></button>
+            </div>
+            <form id="item-form" class="p-6 space-y-4">
+                <input type="hidden" id="item-id">
+                <div class="space-y-1">
+                    <label class="text-sm font-medium text-slate-400">Part Name</label>
+                    <input type="text" id="input-part-name" required
+                        class="w-full bg-slate-800 border border-slate-700 rounded-lg p-2.5 focus:border-primary outline-none">
+                </div>
+                <div class="grid grid-cols-2 gap-4">
+                    <div class="space-y-1">
+                        <label class="text-sm font-medium text-slate-400">Barcode / Part Number</label>
+                        <div class="relative">
+                            <i data-lucide="scan"
+                                class="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-500"></i>
+                            <input type="text" id="input-part-no" placeholder="Scan or type barcode"
+                                class="w-full bg-slate-800 border border-slate-700 rounded-lg py-2.5 pl-10 pr-4 focus:border-primary outline-none font-mono text-xs">
+                        </div>
+                    </div>
+                    <div class="space-y-1">
+                        <label class="text-sm font-medium text-slate-400">Category</label>
+                        <select id="input-category"
+                            class="w-full bg-slate-800 border border-slate-700 rounded-lg p-2.5 focus:border-primary outline-none">
+                            <option value="Car Audio Video">Car Audio Video</option>
+                            <option value="Auto Electrical">Auto Electrical</option>
+                            <option value="Auto Painting">Auto Painting</option>
+                            <option value="Auto AC">Auto AC</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="grid grid-cols-2 gap-4">
+                    <div class="space-y-1">
+                        <label class="text-sm font-medium text-slate-400">Quantity in Stock</label>
+                        <input type="number" id="input-stock" required min="0"
+                            class="w-full bg-slate-800 border border-slate-700 rounded-lg p-2.5 focus:border-primary outline-none">
+                    </div>
+                    <div class="space-y-1">
+                        <label class="text-sm font-medium text-slate-400">Buying Price (Rs)</label>
+                        <input type="number" id="input-buying-price" required step="0.01"
+                            class="w-full bg-slate-800 border border-slate-700 rounded-lg p-2.5 focus:border-primary outline-none">
+                    </div>
+                </div>
+                <div class="space-y-1">
+                    <label class="text-sm font-medium text-slate-400">Selling Price (Rs)</label>
+                    <input type="number" id="input-price" required step="0.01"
+                        class="w-full bg-slate-800 border border-slate-700 rounded-lg p-2.5 focus:border-primary outline-none">
+                </div>
+                <button type="submit"
+                    class="w-full bg-primary text-dark font-bold py-3 rounded-lg hover:scale-[1.02] transition-transform mt-4">Save
+                    Product</button>
+            </form>
+        </div>
+    </div>
+
+    <!-- Expense Modal -->
+    <div id="expense-modal"
+        class="hidden fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-sm p-4">
+        <div class="bg-surface w-full max-w-md rounded-2xl shadow-2xl border border-slate-700 animate-fade-in">
+            <div class="p-6 border-b border-slate-700 flex justify-between items-center">
+                <h3 class="text-xl font-bold text-amber-500">Add Garage Expense</h3>
+                <button onclick="hideModal('expense-modal')" class="text-slate-400 hover:text-white"><i data-lucide="x"
+                        class="w-6 h-6"></i></button>
+            </div>
+            <form id="expense-form" class="p-6 space-y-4" onsubmit="handleExpenseSubmit(event)">
+                <div class="space-y-1">
+                    <label class="text-sm font-medium text-slate-400">Expense Category</label>
+                    <select id="expense-category" required
+                        class="w-full bg-slate-800 border border-slate-700 rounded-lg p-2.5 focus:border-amber-500 outline-none">
+                        <option value="Electricity / Water">Electricity / Water</option>
+                        <option value="Rent / Lease">Rent / Lease</option>
+                        <option value="Tools / Equipment">Tools / Equipment</option>
+                        <option value="Staff Meals / Tea">Staff Meals / Tea</option>
+                        <option value="Cleaning / Maintenance">Cleaning / Maintenance</option>
+                        <option value="Marketing / Ads">Marketing / Ads</option>
+                        <option value="Other">Other</option>
+                    </select>
+                </div>
+                <div class="space-y-1">
+                    <label class="text-sm font-medium text-slate-400">Description</label>
+                    <input type="text" id="expense-description" required placeholder="e.g. Monthly Electricity Bill"
+                        class="w-full bg-slate-800 border border-slate-700 rounded-lg p-2.5 focus:border-amber-500 outline-none">
+                </div>
+                <div class="space-y-1">
+                    <label class="text-sm font-medium text-slate-400">Amount (Rs)</label>
+                    <input type="number" id="expense-amount" required step="0.01" min="0.01"
+                        class="w-full bg-slate-800 border border-slate-700 rounded-lg p-2.5 focus:border-amber-500 outline-none">
+                </div>
+                <div class="space-y-1">
+                    <label class="text-sm font-medium text-slate-400">Date</label>
+                    <input type="date" id="expense-date" required
+                        class="w-full bg-slate-800 border border-slate-700 rounded-lg p-2.5 focus:border-amber-500 outline-none">
+                </div>
+                <button type="submit"
+                    class="w-full bg-amber-600 text-white font-bold py-3 rounded-lg hover:scale-[1.02] transition-transform mt-4">Record
+                    Expense</button>
+            </form>
+        </div>
+    </div>
+
+    <!-- GRN Modal -->
+    <div id="grn-modal"
+        class="hidden fixed inset-0 z-[110] flex items-center justify-center bg-black/90 backdrop-blur-md p-4">
+        <div
+            class="bg-surface w-full max-w-4xl rounded-3xl shadow-2xl border border-slate-700 animate-fade-in flex flex-col max-h-[90vh]">
+            <div class="p-6 border-b border-slate-700 flex justify-between items-center">
+                <h3 class="text-2xl font-black text-green-400">Create New GRN</h3>
+                <button onclick="hideModal('grn-modal')" class="text-slate-400 hover:text-white transition-colors"><i
+                        data-lucide="x" class="w-8 h-8"></i></button>
+            </div>
+
+            <div class="flex-1 overflow-y-auto p-6">
+                <!-- Supplier Info -->
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+                    <div class="space-y-1">
+                        <label class="text-xs font-bold text-slate-500 uppercase">Supplier</label>
+                        <select id="grn-supplier-id"
+                            class="w-full bg-slate-900 border border-slate-700 rounded-xl p-3 focus:border-green-500 outline-none text-white">
+                            <option value="">-- Select Supplier --</option>
+                        </select>
+                    </div>
+                    <div class="space-y-1">
+                        <label class="text-xs font-bold text-slate-500 uppercase">Invoice / Reference No</label>
+                        <input type="text" id="grn-ref" placeholder="Bill Number"
+                            class="w-full bg-slate-900 border border-slate-700 rounded-xl p-3 focus:border-green-500 outline-none">
+                    </div>
+                    <div class="space-y-1">
+                        <label class="text-xs font-bold text-slate-500 uppercase">Amount Paid Now (Rs)</label>
+                        <input type="number" id="grn-paid-amount" value="0" step="0.01"
+                            class="w-full bg-slate-900 border border-slate-700 rounded-xl p-3 focus:border-emerald-500 outline-none text-emerald-400 font-bold">
+                    </div>
+                </div>
+
+                <!-- Item Selector -->
+                <div class="glass p-4 rounded-2xl border border-slate-700 mb-6">
+                    <h4 class="text-sm font-bold mb-4 flex items-center gap-2"><i data-lucide="shopping-bag"
+                            class="w-4 h-4 text-green-400"></i> ADD ITEMS TO GRN</h4>
+                    <div class="grid grid-cols-1 md:grid-cols-4 gap-4 items-end">
+                        <div class="md:col-span-2 space-y-1 relative">
+                            <label class="text-[10px] font-bold text-slate-500 uppercase">Select Part</label>
+                            <input type="text" id="grn-item-search" oninput="filterGrnItems(this.value)"
+                                placeholder="Type to search item..."
+                                class="w-full bg-slate-900 border border-slate-700 rounded-lg p-2.5 text-sm outline-none focus:border-green-500">
+                            <input type="hidden" id="grn-item-selected-id">
+                            <div id="grn-search-results"
+                                class="absolute left-0 right-0 top-full mt-1 bg-slate-800 border border-slate-700 rounded-lg shadow-xl z-[150] max-h-48 overflow-y-auto hidden">
+                                <!-- Search results will appear here -->
+                            </div>
+                        </div>
+                        <div class="space-y-1">
+                            <label class="text-[10px] font-bold text-slate-500 uppercase">Qty Received</label>
+                            <input type="number" id="grn-item-qty" value="1" min="1"
+                                class="w-full bg-slate-900 border border-slate-700 rounded-lg p-2.5 text-sm">
+                        </div>
+                        <div class="space-y-1">
+                            <label class="text-[10px] font-bold text-slate-500 uppercase">Buying Cost (Rs)</label>
+                            <input type="number" id="grn-item-cost" placeholder="0.00"
+                                class="w-full bg-slate-900 border border-slate-700 rounded-lg p-2.5 text-sm">
+                        </div>
+                        <button onclick="addGrnItem()"
+                            class="w-full bg-slate-700 hover:bg-slate-600 py-2.5 rounded-lg flex items-center justify-center gap-2 text-sm font-bold">
+                            <i data-lucide="plus" class="w-4 h-4"></i> ADD
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Selected Items List -->
+                <div class="overflow-hidden border border-slate-700 rounded-xl">
+                    <table class="w-full text-left text-xs">
+                        <thead class="bg-slate-800 text-slate-400 font-bold uppercase">
+                            <tr>
+                                <th class="px-4 py-3">Description</th>
+                                <th class="px-4 py-3 text-center">Qty</th>
+                                <th class="px-4 py-3 text-right">Cost/Unit</th>
+                                <th class="px-4 py-3 text-right">Total</th>
+                                <th class="px-4 py-3 text-center">Action</th>
+                            </tr>
+                        </thead>
+                        <tbody id="grn-items-list" class="divide-y divide-slate-700">
+                            <!-- Items will be added here -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <div
+                class="p-6 border-t border-slate-700 bg-slate-900/50 flex flex-col md:flex-row justify-between items-center gap-4">
+                <div class="text-left">
+                    <p class="text-xs text-slate-500 uppercase font-bold">GRN Total Amount</p>
+                    <p class="text-3xl font-black text-green-400" id="grn-modal-total">Rs 0.00</p>
+                </div>
+                <div class="flex gap-3 w-full md:w-auto">
+                    <button onclick="hideModal('grn-modal')"
+                        class="flex-1 md:flex-none px-8 py-4 bg-slate-700 rounded-2xl font-bold">CANCEL</button>
+                    <button onclick="submitGRN()"
+                        class="flex-1 md:flex-none px-12 py-4 bg-green-600 rounded-2xl font-black text-lg hover:bg-green-500 transition-colors shadow-lg shadow-green-900/20">FINALIZE
+                        GRN</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Service Modal -->
+    <div id="service-modal"
+        class="hidden fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-sm p-4">
+        <div class="bg-surface w-full max-w-md rounded-2xl shadow-2xl border border-slate-700 animate-fade-in">
+            <div class="p-6 border-b border-slate-700 flex justify-between items-center">
+                <h3 class="text-xl font-bold">Add Service Charge</h3>
+                <button onclick="hideModal('service-modal')" class="text-slate-400 hover:text-white"><i data-lucide="x"
+                        class="w-6 h-6"></i></button>
+            </div>
+            <form id="service-form" class="p-6 space-y-4">
+                <input type="hidden" id="service-id">
+                <div class="space-y-1">
+                    <label class="text-sm font-medium text-slate-400">Service Name</label>
+                    <input type="text" id="input-service-name" required placeholder="e.g. Engine Oil Change Labor"
+                        class="w-full bg-slate-800 border border-slate-700 rounded-lg p-2.5 focus:border-primary outline-none">
+                </div>
+                <div class="space-y-1">
+                    <label class="text-sm font-medium text-slate-400">Labor Cost (Rs)</label>
+                    <input type="number" id="input-service-cost" required step="0.01"
+                        class="w-full bg-slate-800 border border-slate-700 rounded-lg p-2.5 focus:border-primary outline-none">
+                </div>
+                <button type="submit"
+                    class="w-full bg-blue-500 text-white font-bold py-3 rounded-lg hover:bg-blue-600 transition-colors mt-4">Save
+                    Service</button>
+            </form>
+        </div>
+    </div>
+
+    <!-- Custom Service Modal -->
+    <div id="custom-service-modal"
+        class="hidden fixed inset-0 z-[120] flex items-center justify-center bg-black/80 backdrop-blur-sm p-4">
+        <div class="bg-surface w-full max-w-sm rounded-2xl shadow-2xl border border-slate-700 animate-fade-in">
+            <div class="p-6 border-b border-slate-700 flex justify-between items-center">
+                <h3 class="text-xl font-bold">Add Custom Service</h3>
+                <button onclick="hideModal('custom-service-modal')" class="text-slate-400 hover:text-white"><i
+                        data-lucide="x" class="w-6 h-6"></i></button>
+            </div>
+            <div class="p-6 space-y-4">
+                <div class="space-y-1">
+                    <label class="text-xs font-bold text-slate-500 uppercase">Service Description</label>
+                    <input type="text" id="custom-service-name" placeholder="e.g. Engine Tuning"
+                        class="w-full bg-slate-900 border border-slate-700 rounded-xl p-3 outline-none focus:border-primary text-white">
+                </div>
+                <div class="space-y-1">
+                    <label class="text-xs font-bold text-slate-500 uppercase">Amount (Rs)</label>
+                    <input type="number" id="custom-service-amount" placeholder="0.00"
+                        class="w-full bg-slate-900 border border-slate-700 rounded-xl p-3 outline-none focus:border-primary text-2xl font-black text-primary">
+                </div>
+                <button onclick="addCustomServiceToCart()"
+                    class="w-full bg-primary text-dark font-black py-4 rounded-xl hover:scale-105 transition-transform">
+                    ADD TO BILL
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Print Area (Optimized for Professional EPSON POS) -->
+    <div id="print-area" class="hidden">
+        <div class="receipt-header">
+            <!-- Professional Image Logo -->
+            <div style="margin-bottom: 2mm; display: flex; flex-direction: column; align-items: center;">
+                <img id="receipt-logo" src="LP auto Zone.svg"
+                    style="width: 60mm; height: auto; max-height: 25mm; object-fit: contain;" alt="LP AUTO ZONE">
+            </div>
+
+            <p style="font-weight: 800; font-size: 9pt; margin-top: 1mm;">PROFESSIONAL AUTO CARE SERVICES</p>
+            <p style="font-size: 8pt;">200/2 Sapumal uyana kotagadara rode Madapatha</p>
+            <p style="font-size: 8pt; font-weight: bold;">Tel: 071 494 3786 / 074 024 9796</p>
+        </div>
+
+        <div class="receipt-info-grid">
+            <div
+                style="display: flex; justify-content: space-between; font-size: 8pt; border-top: 1px dashed #000; border-bottom: 1px dashed #000; padding: 2mm 0;">
+                <div>
+                    <p>INV: #<span id="print-invoice-id" style="font-weight: bold;"></span></p>
+                    <p>DATE: <span id="print-date"></span></p>
+                </div>
+                <div style="text-align: right;">
+                    <p>TIME: <span id="print-time"></span></p>
+                    <p>MODE: <span id="print-payment-method" style="font-weight: bold;"></span></p>
+                </div>
+            </div>
+        </div>
+
+        <div class="vehicle-box">
+            <span id="print-vehicle-no"></span>
+        </div>
+
+        <div style="font-size: 8pt; margin-bottom: 2mm; text-transform: uppercase;">
+            CUSTOMER: <span id="print-customer-name" style="font-weight: bold;"></span>
+        </div>
+
+        <table class="receipt-table">
+            <thead>
+                <tr>
+                    <th style="text-align: left; padding: 1mm 0;">DESCRIPTION</th>
+                    <th style="text-align: center; width: 15%;">QTY</th>
+                    <th style="text-align: right; width: 30%;">AMOUNT</th>
+                </tr>
+            </thead>
+            <tbody id="print-items">
+                <!-- Items injected here -->
+            </tbody>
+        </table>
+
+        <div class="receipt-divider"></div>
+
+        <div class="total-section">
+            <div class="total-row">
+                <span>Subtotal:</span>
+                <span id="print-subtotal"></span>
+            </div>
+            <div class="total-row">
+                <span>Discount:</span>
+                <span id="print-discount"></span>
+            </div>
+            <div class="total-row grand-total">
+                <span style="font-size: 15pt; font-weight: 950;">TOTAL:</span>
+                <span id="print-total" style="font-size: 15pt; font-weight: 950;"></span>
+            </div>
+
+            <div id="print-cash-section">
+                <div class="total-row" style="margin-top: 2mm; font-size: 8pt; opacity: 0.8;">
+                    <span>Cash Received:</span>
+                    <span id="print-cash-received"></span>
+                </div>
+                <div class="total-row" style="font-size: 10pt; font-weight: bold;">
+                    <span>Balance:</span>
+                    <span id="print-balance"></span>
+                </div>
+            </div>
+        </div>
+
+        <div class="receipt-footer">
+            <p style="font-weight: bold; margin-bottom: 2mm;">THANK YOU FOR YOUR BUSINESS!</p>
+            <p>Software by scriptsoft | 0756087280 </p>
+            <p style="margin-top: 2mm; font-size: 7pt; font-style: italic;">Note: Goods once sold are not
+                returnable.<br>Quality checks performed by LP Auto Zone.</p>
+        </div>
+    </div>
+    </div>
+
+    <!-- Checkout Success Modal -->
+    <div id="checkout-success-modal"
+        class="hidden fixed inset-0 z-[110] flex items-center justify-center bg-black/90 backdrop-blur-md p-4">
+        <div
+            class="bg-surface w-full max-w-sm rounded-3xl shadow-2xl border border-slate-700 p-8 text-center animate-bounce-in">
+            <div
+                class="w-20 h-20 bg-green-500/20 text-green-500 rounded-full flex items-center justify-center mx-auto mb-6">
+                <i data-lucide="check-circle-2" class="w-12 h-12"></i>
+            </div>
+            <h2 class="text-2xl font-black mb-1">Success!</h2>
+            <p class="text-slate-400 text-sm mb-6">Bill #<span id="success-invoice-id">000000</span> has been created.
+            </p>
+
+            <div class="space-y-3">
+                <button id="download-pdf-btn"
+                    class="w-full bg-blue-600 text-white font-black py-4 rounded-xl hover:scale-105 transition-transform flex items-center justify-center gap-3">
+                    <i data-lucide="download" class="w-5 h-5"></i>
+                    DOWNLOAD PDF
+                </button>
+                <button id="wa-share-btn"
+                    class="w-full bg-[#25D366] text-white font-black py-4 rounded-xl hover:scale-105 transition-transform flex items-center justify-center gap-3">
+                    <i data-lucide="phone" class="w-5 h-5"></i>
+                    SEND TO WHATSAPP
+                </button>
+                <button onclick="hideModal('checkout-success-modal'); window.print();"
+                    class="w-full bg-slate-700 text-white font-bold py-3 rounded-xl hover:bg-slate-600 transition-colors">
+                    PRINT RECEIPT
+                </button>
+                <button onclick="hideModal('checkout-success-modal')"
+                    class="w-full text-slate-500 text-xs font-bold uppercase tracking-widest pt-2">
+                    DONE
+                </button>
+            </div>
+        </div>
+    </div>
+    <!-- Receipt Preview Modal -->
+    <div id="receipt-modal"
+        class="hidden fixed inset-0 z-[120] flex items-center justify-center bg-black/90 backdrop-blur-md p-4">
+        <div
+            class="bg-white w-full max-w-sm rounded-[2rem] shadow-2xl p-0 overflow-hidden animate-fade-in text-black border-4 border-slate-700">
+            <div class="p-4 bg-slate-100 border-b flex justify-between items-center text-slate-800">
+                <span class="font-bold text-xs uppercase tracking-widest">Bill Preview</span>
+                <button onclick="hideModal('receipt-modal')" class="text-slate-500 hover:text-black">
+                    <i data-lucide="x" class="w-5 h-5"></i>
+                </button>
+            </div>
+            <div id="receipt-modal-content" class="p-8 bg-white overflow-y-auto max-h-[70vh]">
+                <!-- Receipt content will be cloned here -->
+            </div>
+            <div class="p-6 border-t bg-slate-50 flex gap-3">
+                <button id="preview-download-btn"
+                    class="flex-1 bg-blue-600 text-white font-black py-4 rounded-2xl flex items-center justify-center gap-2 hover:scale-105 transition-transform">
+                    <i data-lucide="download" class="w-5 h-5"></i> PDF
+                </button>
+                <button onclick="window.print()"
+                    class="flex-1 bg-primary text-dark font-black py-4 rounded-2xl flex items-center justify-center gap-2 hover:scale-105 transition-transform">
+                    <i data-lucide="printer" class="w-5 h-5"></i> PRINT NOW
+                </button>
+                <button onclick="hideModal('receipt-modal')"
+                    class="flex-1 bg-slate-200 text-slate-700 font-bold py-4 rounded-2xl hover:bg-slate-300 transition-colors">
+                    CLOSE
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- GRN Preview Modal -->
+    <div id="grn-preview-modal"
+        class="hidden fixed inset-0 z-[120] flex items-center justify-center bg-black/90 backdrop-blur-md p-4">
+        <div
+            class="bg-white w-full max-w-2xl rounded-[2rem] shadow-2xl p-0 overflow-hidden animate-fade-in text-black border-4 border-green-600">
+            <div class="p-4 bg-green-50 border-b flex justify-between items-center text-green-800">
+                <span class="font-bold text-xs uppercase tracking-widest">GRN Preview (Stock In)</span>
+                <button onclick="hideModal('grn-preview-modal')" class="text-green-600 hover:text-black">
+                    <i data-lucide="x" class="w-5 h-5"></i>
+                </button>
+            </div>
+            <div id="grn-preview-content" class="p-8 bg-white overflow-y-auto max-h-[70vh]">
+                <!-- GRN content will be populated here -->
+            </div>
+            <div class="p-6 border-t bg-slate-50 flex gap-3">
+                <button id="grn-preview-download-btn"
+                    class="flex-1 bg-green-600 text-white font-black py-4 rounded-2xl flex items-center justify-center gap-2 hover:scale-105 transition-transform">
+                    <i data-lucide="download" class="w-5 h-5"></i> DOWNLOAD PDF
+                </button>
+                <button onclick="hideModal('grn-preview-modal')"
+                    class="flex-1 bg-slate-200 text-slate-700 font-bold py-4 rounded-2xl hover:bg-slate-300 transition-colors">
+                    CLOSE
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Day Start Modal -->
+    <div id="day-start-modal"
+        class="hidden fixed inset-0 z-[100] flex items-center justify-center bg-black/90 backdrop-blur-md p-4">
+        <div
+            class="bg-surface w-full max-w-sm rounded-3xl shadow-2xl border border-slate-700 p-8 text-center animate-fade-in">
+            <div
+                class="w-20 h-20 bg-primary/20 text-primary rounded-full flex items-center justify-center mx-auto mb-6">
+                <i data-lucide="sun" class="w-10 h-10"></i>
+            </div>
+            <h2 class="text-2xl font-black mb-2">Good Morning!</h2>
+            <p class="text-slate-400 text-sm mb-8">Set your opening float to start the business day.</p>
+            <div class="space-y-4 text-left">
+                <div class="space-y-1">
+                    <label class="text-xs font-bold text-slate-500 uppercase">Opening Float (Cash)</label>
+                    <input type="number" id="opening-float" value="0"
+                        class="w-full bg-slate-900 border border-slate-700 rounded-xl py-3 px-4 text-xl font-black text-primary focus:border-primary outline-none">
+                </div>
+                <button onclick="startNewDay()"
+                    class="w-full bg-primary text-dark font-black py-4 rounded-xl hover:scale-105 transition-transform">
+                    OPEN SHOP
+                </button>
+                <button id="admin-force-day-end" onclick="generateDayEndReport(true)"
+                    class="hidden w-full bg-slate-700 text-white font-bold py-3 rounded-xl hover:bg-slate-600 transition-colors mt-2 text-xs">
+                    VIEW SHIFTS & END DAY
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Day End Modal -->
+    <div id="day-end-modal"
+        class="hidden fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-sm p-4">
+        <div
+            class="bg-surface w-full max-w-md rounded-2xl shadow-2xl border border-slate-700 animate-fade-in max-h-[90vh] flex flex-col">
+            <div
+                class="p-6 border-b border-slate-700 flex justify-between items-center bg-surface sticky top-0 z-10 rounded-t-2xl">
+                <h3 class="text-xl font-bold" id="de-header-title">Close Business Day</h3>
+                <button onclick="hideModal('day-end-modal')" class="text-slate-400 hover:text-white"><i data-lucide="x"
+                        class="w-6 h-6"></i></button>
+            </div>
+            <div class="p-6 space-y-6 overflow-y-auto">
+                <div id="de-shifts-container" class="hidden space-y-3">
+                    <h4 class="text-xs font-bold text-slate-500 uppercase tracking-widest">Today's Shifts</h4>
+                    <div id="de-shifts-list" class="space-y-2">
+                        <!-- Shifts dynamic -->
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-2 gap-4" id="de-metrics-grid">
+                    <div class="glass p-4 rounded-xl">
+                        <p class="text-[10px] text-slate-500 uppercase font-bold">Opening Float</p>
+                        <p class="text-lg font-black" id="de-float">Rs 0.00</p>
+                    </div>
+                    <div class="glass p-4 rounded-xl">
+                        <p class="text-[10px] text-slate-500 uppercase font-bold">Today's Expenses</p>
+                        <p class="text-lg font-black text-amber-500" id="de-expenses">Rs 0.00</p>
+                    </div>
+                    <div class="glass p-4 rounded-xl">
+                        <p class="text-[10px] text-slate-500 uppercase font-bold">Total Cash Sales</p>
+                        <p class="text-lg font-black text-green-400" id="de-cash">Rs 0.00</p>
+                    </div>
+                    <!-- Empty div for spacing -->
+                    <div class="p-4"></div>
+                </div>
+                <div class="space-y-1">
+                    <label class="text-sm font-medium text-slate-400">Actual Cash in Hand</label>
+                    <input type="number" id="actual-cash-hand" placeholder="Enter counted cash..."
+                        class="w-full bg-slate-800 border border-slate-700 rounded-lg p-4 text-2xl font-black text-primary outline-none">
+                    <div class="flex justify-between items-center text-[10px] text-slate-500" id="de-expected-row">
+                        <p>Expected: <span id="de-expected" class="font-bold">Rs 0.00</span></p>
+                        <button onclick="overrideSessionError()" class="text-red-400 hover:text-red-300 underline">Fix
+                            "NaN" Error</button>
+                    </div>
+                </div>
+                <button onclick="processDayEnd()" id="de-confirm-btn"
+                    class="w-full bg-red-600 text-white font-bold py-4 rounded-xl hover:bg-red-500 transition-colors">
+                    GENERATE REPORT & CLOSE
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Supplier Modal -->
+    <div id="supplier-modal"
+        class="hidden fixed inset-0 z-[120] flex items-center justify-center bg-black/90 backdrop-blur-md p-4">
+        <div class="bg-surface w-full max-w-md rounded-3xl shadow-2xl border border-slate-700 animate-fade-in">
+            <div class="p-6 border-b border-slate-700 flex justify-between items-center">
+                <h3 class="text-xl font-bold text-emerald-400">Add/Edit Supplier</h3>
+                <button onclick="hideModal('supplier-modal')" class="text-slate-400 hover:text-white transition-colors">
+                    <i data-lucide="x" class="w-6 h-6"></i>
+                </button>
+            </div>
+            <form onsubmit="handleSupplierSubmit(event)" class="p-8 space-y-4">
+                <input type="hidden" id="supplier-id">
+                <div class="space-y-1">
+                    <label class="text-xs font-bold text-slate-500 uppercase">Supplier Name</label>
+                    <input type="text" id="supplier-name" required placeholder="e.g. United Motors"
+                        class="w-full bg-slate-900 border border-slate-700 rounded-xl p-3 focus:border-emerald-500 outline-none">
+                </div>
+                <div class="space-y-1">
+                    <label class="text-xs font-bold text-slate-500 uppercase">Phone Number</label>
+                    <input type="text" id="supplier-phone" placeholder="07XXXXXXXX"
+                        class="w-full bg-slate-900 border border-slate-700 rounded-xl p-3 focus:border-emerald-500 outline-none">
+                </div>
+                <div class="space-y-1">
+                    <label class="text-xs font-bold text-slate-500 uppercase">Address / Notes</label>
+                    <textarea id="supplier-address" placeholder="Company address or other details..." rows="3"
+                        class="w-full bg-slate-900 border border-slate-700 rounded-xl p-3 focus:border-emerald-500 outline-none"></textarea>
+                </div>
+                <button type="submit"
+                    class="w-full bg-emerald-600 text-white font-black py-4 rounded-xl hover:scale-105 transition-transform mt-4">
+                    SAVE SUPPLIER
+                </button>
+            </form>
+        </div>
+    </div>
+
+    <!-- Supplier Payment Modal -->
+    <div id="supplier-payment-modal"
+        class="hidden fixed inset-0 z-[125] flex items-center justify-center bg-black/90 backdrop-blur-md p-4">
+        <div class="bg-surface w-full max-w-sm rounded-3xl shadow-2xl border border-slate-700 animate-fade-in">
+            <div class="p-6 border-b border-slate-700">
+                <h3 class="text-xl font-bold text-red-500">Pay Supplier</h3>
+                <p class="text-xs text-slate-500 uppercase font-bold" id="pay-supplier-name"></p>
+            </div>
+            <div class="p-8 space-y-6">
+                <div class="bg-red-500/10 p-4 rounded-xl border border-red-500/20">
+                    <p class="text-[10px] text-red-400 font-bold uppercase tracking-widest">Total Outstanding</p>
+                    <p class="text-2xl font-black text-white" id="pay-supplier-total">Rs 0.00</p>
+                </div>
+                <div class="space-y-1">
+                    <label class="text-xs font-bold text-slate-500 uppercase">Payment Amount (Rs)</label>
+                    <input type="number" id="supplier-pay-amount" required step="0.01" value="0"
+                        class="w-full bg-slate-900 border border-slate-700 rounded-xl p-4 text-center text-xl font-black text-emerald-400 outline-none focus:border-emerald-500">
+                </div>
+                <button onclick="processSupplierPayment()"
+                    class="w-full bg-emerald-600 text-white font-black py-4 rounded-xl hover:scale-105 transition-transform shadow-lg shadow-emerald-900/20">
+                    CONFIRM PAYMENT
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Supplier Ledger Modal -->
+    <div id="supplier-ledger-modal"
+        class="hidden fixed inset-0 z-[115] flex items-center justify-center bg-black/95 backdrop-blur-md p-4">
+        <div
+            class="bg-surface w-full max-w-4xl rounded-3xl shadow-2xl border border-slate-700 flex flex-col max-h-[90vh]">
+            <div
+                class="p-6 border-b border-slate-700 flex justify-between items-center bg-surface sticky top-0 z-10 rounded-t-3xl">
+                <div>
+                    <h3 class="text-2xl font-black text-emerald-400">Supplier Ledger</h3>
+                    <p class="text-xs text-slate-500 uppercase font-bold tracking-widest" id="ledger-supplier-name">-
+                    </p>
+                </div>
+                <button onclick="hideModal('supplier-ledger-modal')" class="text-slate-400 hover:text-white">
+                    <i data-lucide="x" class="w-8 h-8"></i>
+                </button>
+            </div>
+            <div class="flex-1 overflow-y-auto p-4 space-y-6">
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                    <div class="glass p-4 rounded-xl">
+                        <p class="text-[10px] text-slate-500 font-bold uppercase">Total GRN Value</p>
+                        <p class="text-lg font-black" id="ledger-total-grn">Rs 0.00</p>
+                    </div>
+                    <div class="glass p-4 rounded-xl">
+                        <p class="text-[10px] text-slate-500 font-bold uppercase text-green-500">Total Paid</p>
+                        <p class="text-lg font-black text-green-400" id="ledger-total-paid">Rs 0.00</p>
+                    </div>
+                    <div class="glass p-4 rounded-xl border border-red-500/20">
+                        <p class="text-[10px] text-red-400 font-bold uppercase">Net Balance (Payable)</p>
+                        <p class="text-lg font-black text-red-500" id="ledger-net-balance">Rs 0.00</p>
+                    </div>
+                </div>
+
+                <div id="supplier-ledger-content" class="space-y-4">
+                    <!-- Dynamic Ledger Entries (GRNs) -->
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Vehicle Profile Modal -->
+    <div id="vehicle-modal"
+        class="hidden fixed inset-0 z-[110] flex items-center justify-center bg-black/90 backdrop-blur-md p-4">
+        <div
+            class="bg-surface w-full max-w-2xl rounded-3xl shadow-2xl border border-slate-700 animate-fade-in flex flex-col max-h-[95vh]">
+            <div
+                class="p-6 border-b border-slate-700 flex justify-between items-center bg-surface sticky top-0 z-10 rounded-t-3xl">
+                <div>
+                    <h3 class="text-2xl font-black text-sky-400">Vehicle Profile</h3>
+                    <p class="text-[10px] text-slate-500 uppercase font-bold tracking-widest" id="v-modal-title-no">New
+                        Vehicle</p>
+                </div>
+                <button onclick="hideModal('vehicle-modal')" class="text-slate-400 hover:text-white transition-colors">
+                    <i data-lucide="x" class="w-8 h-8"></i>
+                </button>
+            </div>
+
+            <div class="flex-1 overflow-y-auto p-8 space-y-8">
+                <!-- Vehicle Basic Info Form -->
+                <form id="vehicle-form" class="grid grid-cols-1 md:grid-cols-2 gap-6"
+                    onsubmit="handleVehicleSubmit(event)">
+                    <input type="hidden" id="v-profile-id">
+                    <input type="hidden" id="v-profile-no">
+
+                    <div class="space-y-1">
+                        <label class="text-xs font-bold text-slate-500 uppercase">Model / Variant</label>
+                        <input type="text" id="v-model" placeholder="e.g. Toyota Aqua G-Grade" required
+                            class="w-full bg-slate-900 border border-slate-700 rounded-xl p-3 focus:border-sky-500 outline-none">
+                    </div>
+                    <div class="space-y-1">
+                        <label class="text-xs font-bold text-slate-500 uppercase">Year of Manufacture</label>
+                        <input type="number" id="v-year" placeholder="e.g. 2014"
+                            class="w-full bg-slate-900 border border-slate-700 rounded-xl p-3 focus:border-sky-500 outline-none">
+                    </div>
+                    <div class="space-y-1">
+                        <label class="text-xs font-bold text-slate-500 uppercase">Engine Number / Code</label>
+                        <input type="text" id="v-engine" placeholder="e.g. 1NZ-FXE"
+                            class="w-full bg-slate-900 border border-slate-700 rounded-xl p-3 focus:border-sky-500 outline-none">
+                    </div>
+                    <div class="space-y-1">
+                        <label class="text-xs font-bold text-slate-500 uppercase">Chassis Number</label>
+                        <input type="text" id="v-chassis" placeholder="NHP10-XXXXXXX"
+                            class="w-full bg-slate-900 border border-slate-700 rounded-xl p-3 focus:border-sky-500 outline-none">
+                    </div>
+                    <div class="md:col-span-2 space-y-1">
+                        <label class="text-xs font-bold text-slate-500 uppercase">Vehicle Notes / Damage Records</label>
+                        <textarea id="v-notes"
+                            placeholder="e.g. Front bumper has a scratch on left side. No spare wheel." rows="3"
+                            class="w-full bg-slate-900 border border-slate-700 rounded-xl p-3 focus:border-sky-500 outline-none"></textarea>
+                    </div>
+
+                    <div class="md:col-span-2 flex justify-end gap-3">
+                        <button type="button" onclick="hideModal('vehicle-modal')"
+                            class="px-6 py-3 border border-slate-700 rounded-xl font-bold hover:bg-slate-800 transition-colors">CANCEL</button>
+                        <button type="submit"
+                            class="bg-sky-600 text-white font-black px-10 py-3 rounded-xl hover:scale-[1.02] transition-transform shadow-lg shadow-sky-600/20">
+                            SAVE DETAILS
+                        </button>
+                    </div>
+                </form>
+
+                <!-- Image Gallery Section -->
+                <div class="border-t border-slate-700 pt-8">
+                    <div class="flex items-center justify-between mb-6">
+                        <h4 class="font-bold flex items-center gap-2">
+                            <i data-lucide="camera" class="w-5 h-5 text-sky-400"></i>
+                            Condition Photos
+                        </h4>
+                        <label
+                            class="bg-slate-700 hover:bg-slate-600 text-white px-4 py-2 rounded-xl text-xs font-bold cursor-pointer transition-colors flex items-center gap-2">
+                            <i data-lucide="upload" class="w-4 h-4"></i>
+                            ADD PHOTOS
+                            <input type="file" id="v-image-input" accept="image/*" class="hidden" multiple
+                                onchange="handleVehicleImages(event)">
+                        </label>
+                    </div>
+
+                    <div id="v-image-gallery" class="grid grid-cols-2 md:grid-cols-4 gap-4">
+                        <!-- Images will be dynamic -->
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- jspdf -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.23/jspdf.plugin.autotable.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+    <div id="toast"
+        class="fixed bottom-10 left-1/2 -translate-x-1/2 translate-y-20 opacity-0 bg-primary text-dark font-bold px-6 py-3 rounded-full shadow-2xl transition-all duration-300 z-[100] flex items-center gap-3">
+        <i data-lucide="check-circle-2" class="w-5 h-5"></i>
+        <span id="toast-msg">Success!</span>
+    </div>
+
+    <!-- Login Overlay -->
+    <div id="login-screen" class="fixed inset-0 z-[200] bg-dark flex items-center justify-center p-4">
+        <div class="w-full max-w-md bg-surface p-8 rounded-3xl border border-slate-700 shadow-2xl text-center">
+            <div
+                class="w-24 h-24 bg-primary rounded-full flex items-center justify-center mx-auto mb-8 shadow-[0_0_30px_rgba(255,189,0,0.3)]">
+                <i data-lucide="wrench" class="w-12 h-12 text-dark"></i>
+            </div>
+            <h1 class="text-3xl font-black mb-2">GARAGE MASTER V002</h1>
+            <p class="text-slate-500 mb-8">Secure Access Required</p>
+
+            <form onsubmit="handleLogin(event)" class="space-y-4">
+                <input type="text" id="login-user" placeholder="Username"
+                    class="w-full bg-slate-900 border border-slate-700 rounded-xl p-4 text-center text-lg outline-none focus:border-primary transition-all"
+                    value="admin">
+                <input type="password" id="login-pass" placeholder="Password"
+                    class="w-full bg-slate-900 border border-slate-700 rounded-xl p-4 text-center text-lg outline-none focus:border-primary transition-all">
+                <button type="submit"
+                    class="w-full bg-primary text-dark font-black py-4 rounded-xl hover:scale-105 transition-transform text-lg">
+                    LOGIN SYSTEM
+                </button>
+            </form>
+            <p class="text-xs text-slate-600 mt-6">Default: admin / 1234</p>
+        </div>
+    </div>
+
+    <!-- Custom Script -->
+    <script src="script.js"></script>
+    <!-- Customer Modal -->
+    <div id="customer-modal"
+        class="hidden fixed inset-0 z-[130] flex items-center justify-center bg-black/80 backdrop-blur-sm p-4">
+        <div class="bg-surface w-full max-w-md rounded-2xl shadow-2xl border border-slate-700 animate-fade-in">
+            <div class="p-6 border-b border-slate-700 flex justify-between items-center">
+                <h3 class="text-xl font-bold text-indigo-400">Register New Customer</h3>
+                <button onclick="hideModal('customer-modal')" class="text-slate-400 hover:text-white">
+                    <i data-lucide="x" class="w-6 h-6"></i>
+                </button>
+            </div>
+            <form id="customer-form" class="p-6 space-y-4" onsubmit="handleCustomerSubmit(event)">
+                <div class="space-y-1">
+                    <label class="text-sm font-medium text-slate-400">Customer Name</label>
+                    <input type="text" id="cust-name" required placeholder="Full Name"
+                        class="w-full bg-slate-900 border border-slate-700 rounded-lg p-2.5 focus:border-indigo-500 outline-none">
+                </div>
+                <div class="space-y-1">
+                    <label class="text-sm font-medium text-slate-400">Phone Number</label>
+                    <input type="text" id="cust-phone" required placeholder="07x xxxxxxx"
+                        class="w-full bg-slate-900 border border-slate-700 rounded-lg p-2.5 focus:border-indigo-500 outline-none">
+                </div>
+                <div class="space-y-1">
+                    <label class="text-sm font-medium text-slate-400">Primary Vehicle No</label>
+                    <input type="text" id="cust-vno" placeholder="e.g. WP CP-1234"
+                        class="w-full bg-slate-900 border border-slate-700 rounded-lg p-2.5 focus:border-indigo-500 outline-none uppercase">
+                </div>
+                <div class="space-y-1">
+                    <label class="text-sm font-medium text-slate-400">Initial Loyalty Points (Optional)</label>
+                    <input type="number" id="cust-initial-points" value="0" min="0"
+                        class="w-full bg-slate-900 border border-slate-700 rounded-lg p-2.5 focus:border-indigo-500 outline-none">
+                </div>
+                <button type="submit"
+                    class="w-full bg-indigo-600 text-white font-bold py-3 rounded-lg hover:bg-indigo-500 transition-colors mt-4">
+                    SAVE CUSTOMER
+                </button>
+            </form>
+        </div>
+    </div>
+</body>
+
+</html>

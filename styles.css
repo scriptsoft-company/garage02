@@ -1,0 +1,201 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Outfit:wght@400;600;700&display=swap');
+
+:root {
+    --primary: #f59e0b;
+    /* Amber 500 - Rugged Garage Feel */
+    --secondary: #1f2937;
+    /* Gray 800 */
+    --accent: #3b82f6;
+    /* Blue 500 */
+    --background: #0f172a;
+    /* Slate 900 */
+    --surface: #1e293b;
+    /* Slate 800 */
+    --text: #f8fafc;
+    --text-muted: #94a3b8;
+}
+
+body {
+    font-family: 'Inter', sans-serif;
+    background-color: var(--background);
+    color: var(--text);
+    overflow-x: hidden;
+}
+
+h1,
+h2,
+h3,
+.brand-font {
+    font-family: 'Outfit', sans-serif;
+}
+
+/* Custom Scrollbar */
+::-webkit-scrollbar {
+    width: 6px;
+}
+
+::-webkit-scrollbar-track {
+    background: var(--background);
+}
+
+::-webkit-scrollbar-thumb {
+    background: var(--surface);
+    border-radius: 10px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+    background: var(--primary);
+}
+
+/* Glassmorphism */
+.glass {
+    background: rgba(30, 41, 59, 0.7);
+    backdrop-filter: blur(10px);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.card-hover {
+    transition: all 0.3s ease;
+}
+
+.card-hover:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 10px 20px -5px rgba(0, 0, 0, 0.3);
+    border-color: var(--primary);
+}
+
+/* Print Styles for POS Thermal Printer (80mm) */
+@media print {
+    @page {
+        margin: 0;
+        size: 80mm auto;
+    }
+
+    html,
+    body {
+        background: white !important;
+        color: black !important;
+        margin: 0;
+        padding: 0;
+        width: 80mm;
+        font-family: 'Courier New', Courier, monospace;
+    }
+
+    body>*:not(#print-area) {
+        display: none !important;
+    }
+
+    #print-area {
+        display: block !important;
+        width: 72mm;
+        margin: 0 auto;
+        padding: 2mm;
+        background: white !important;
+    }
+
+    .receipt-header {
+        text-align: center;
+        margin-bottom: 4mm;
+    }
+
+    .receipt-header h1 {
+        font-size: 16pt;
+        margin: 0;
+        text-transform: uppercase;
+        font-weight: 950;
+    }
+
+    .receipt-header p {
+        font-size: 8pt;
+        margin: 1mm 0;
+    }
+
+    .vehicle-box {
+        border: 1px solid black;
+        padding: 2mm;
+        text-align: center;
+        font-size: 14pt;
+        font-weight: 950;
+        margin: 3mm 0;
+        background: #f0f0f0 !important;
+        -webkit-print-color-adjust: exact;
+        print-color-adjust: exact;
+    }
+
+    .receipt-table {
+        width: 100%;
+        border-collapse: collapse;
+        font-size: 8pt;
+    }
+
+    .receipt-table th {
+        border-bottom: 1px solid black;
+        text-align: left;
+        padding: 1mm 0;
+    }
+
+    .receipt-table td {
+        padding: 1.5mm 0;
+        vertical-align: top;
+    }
+
+    .receipt-divider {
+        border-bottom: 1px dashed black;
+        margin: 2mm 0;
+    }
+
+    .total-row {
+        display: flex;
+        justify-content: space-between;
+        margin-bottom: 1mm;
+        font-size: 9pt;
+    }
+
+    .grand-total {
+        font-size: 14pt;
+        font-weight: 900;
+        margin-top: 1mm;
+        border-top: 2px solid black;
+        padding-top: 1mm;
+    }
+
+    .receipt-footer {
+        text-align: center;
+        margin-top: 6mm;
+        border-top: 1px dashed black;
+        padding-top: 3mm;
+        font-size: 8pt;
+    }
+
+    .no-print {
+        display: none !important;
+    }
+}
+
+/* Animations */
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(10px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.animate-fade-in {
+    animation: fadeIn 0.4s ease-out forwards;
+}
+
+/* Utility to hide elements */
+.hidden {
+    display: none !important;
+}
+
+/* Active Nav Item */
+.nav-item.active {
+    background-color: var(--primary);
+    color: var(--background);
+}

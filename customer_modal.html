@@ -1,0 +1,38 @@
+<!-- Customer Modal -->
+<div id="customer-modal"
+    class="hidden fixed inset-0 z-[130] flex items-center justify-center bg-black/80 backdrop-blur-sm p-4">
+    <div class="bg-surface w-full max-w-md rounded-2xl shadow-2xl border border-slate-700 animate-fade-in">
+        <div class="p-6 border-b border-slate-700 flex justify-between items-center">
+            <h3 class="text-xl font-bold text-indigo-400">Register New Customer</h3>
+            <button onclick="hideModal('customer-modal')" class="text-slate-400 hover:text-white">
+                <i data-lucide="x" class="w-6 h-6"></i>
+            </button>
+        </div>
+        <form id="customer-form" class="p-6 space-y-4" onsubmit="handleCustomerSubmit(event)">
+            <div class="space-y-1">
+                <label class="text-sm font-medium text-slate-400">Customer Name</label>
+                <input type="text" id="cust-name" required placeholder="Full Name"
+                    class="w-full bg-slate-900 border border-slate-700 rounded-lg p-2.5 focus:border-indigo-500 outline-none">
+            </div>
+            <div class="space-y-1">
+                <label class="text-sm font-medium text-slate-400">Phone Number</label>
+                <input type="text" id="cust-phone" required placeholder="07x xxxxxxx"
+                    class="w-full bg-slate-900 border border-slate-700 rounded-lg p-2.5 focus:border-indigo-500 outline-none">
+            </div>
+            <div class="space-y-1">
+                <label class="text-sm font-medium text-slate-400">Primary Vehicle No</label>
+                <input type="text" id="cust-vno" placeholder="e.g. WP CP-1234"
+                    class="w-full bg-slate-900 border border-slate-700 rounded-lg p-2.5 focus:border-indigo-500 outline-none uppercase">
+            </div>
+            <div class="space-y-1">
+                <label class="text-sm font-medium text-slate-400">Initial Loyalty Points (Optional)</label>
+                <input type="number" id="cust-initial-points" value="0" min="0"
+                    class="w-full bg-slate-900 border border-slate-700 rounded-lg p-2.5 focus:border-indigo-500 outline-none">
+            </div>
+            <button type="submit"
+                class="w-full bg-indigo-600 text-white font-bold py-3 rounded-lg hover:bg-indigo-500 transition-colors mt-4">
+                SAVE CUSTOMER
+            </button>
+        </form>
+    </div>
+</div>
